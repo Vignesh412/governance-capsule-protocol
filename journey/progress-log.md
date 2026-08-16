@@ -197,3 +197,35 @@ Implement the atomic allocation ledger, replay/use registry, and revocation fres
 - The repository is publicly visible.
 - The README, semantic validator, adversarial tests, and ignore rules are accessible from the default branch.
 - The GitHub owner account has administrative and push access.
+
+## 2026-08-16 - Milestone 3 stateful enforcement slice
+
+### Completed
+
+- Implemented an atomic process-local allocation ledger for aggregate sibling budgets.
+- Implemented all-or-nothing batch allocation and duplicate-allocation rejection.
+- Confirmed that allocations are not implicitly reclaimed.
+- Implemented an atomic replay and use-count registry.
+- Added capsule audience validation.
+- Implemented `online-strict`, `bounded-stale`, and `offline-until-expiry` revocation evaluation.
+- Added cascading ancestor-revocation checks and explicit offline residual-risk evidence.
+- Added deterministic error codes for allocation conflicts, wrong audience, replay, revocation, stale or unavailable status, and disallowed offline execution.
+- Recorded Decision 0006.
+
+### Test result
+
+`python3 -m pytest`: 39 passed.
+
+The suite includes two-thread races for competing budget reservations and single-use authority. The independent schema suite remains green.
+
+### Learning
+
+Portable proof and shared enforcement state are complementary. The capsule and delegation proof establish what one transition claims. Atomic ledgers, use registries, and freshness-aware status services establish whether that transition may still be acted upon in a concurrent system.
+
+### Remaining before Milestone 3 completion
+
+- Cryptographically verify signed revocation artifacts through the status adapter.
+- Implement approval consumption and amendment authorization.
+- Integrate structural schema validation into the public API.
+- Generate signed enforcement and lifecycle receipts.
+- Add the required randomized property-test coverage.
