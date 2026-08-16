@@ -1,0 +1,63 @@
+{
+  "gcp_version": "0.1",
+  "kind": "root",
+  "capsule_id": "urn:gcp:capsule:root-001",
+  "revision": 0,
+  "task": {
+    "task_id": "urn:gcp:task:supplier-onboarding-001",
+    "workflow_id": "urn:gcp:workflow:supplier-onboarding",
+    "purpose": "Evaluate supplier ACME for onboarding"
+  },
+  "issuer": "https://governance.example.com/issuers/procurement",
+  "subject": "spiffe://example.com/agent/intake",
+  "authority": [
+    {
+      "grant_id": "urn:gcp:grant:vendor-read",
+      "action": "vendor.read",
+      "resource": {"match": "prefix", "uri": "https://api.example.com/vendors/acme/"},
+      "constraints": [{"name": "regions", "operator": "set_subset", "value": ["EU", "US"], "critical": true}]
+    },
+    {
+      "grant_id": "urn:gcp:grant:risk-score",
+      "action": "risk.calculate",
+      "resource": {"match": "exact", "uri": "https://api.example.com/vendors/acme"},
+      "constraints": [{"name": "risk_max", "operator": "decimal_lte", "value": "0.30", "critical": true}]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "urn:gcp:obligation:approval-high-risk",
+      "type": "https://gcp-protocol.dev/obligations/human-approval",
+      "version": "0.1",
+      "mandatory": true,
+      "satisfaction_point": "before_action",
+      "parameters": {"when": "risk_score>=0.80", "approver_role": "procurement-risk-officer"},
+      "source": {
+        "issuer": "https://governance.example.com/issuers/procurement",
+        "policy_ref": "https://governance.example.com/policies/vendor-risk/v3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  ],
+  "budgets": [
+    {"dimension": "cost", "quantity": "10.00", "unit": "USD"},
+    {"dimension": "tokens", "quantity": "100000", "unit": "token"},
+    {"dimension": "risk", "quantity": "0.30", "unit": "score"}
+  ],
+  "delegation_depth": 3,
+  "validity": {
+    "not_before": "2026-08-12T00:00:00Z",
+    "expires_at": "2026-08-13T00:00:00Z",
+    "freshness": {"profile": "bounded-stale", "status_endpoint": "https://governance.example.com/status", "max_staleness_seconds": 60},
+    "replay": {"mode": "multi-use", "max_uses": 20}
+  },
+  "sequence": 0,
+  "proof": {
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
+    "verification_method": "https://governance.example.com/keys/procurement-2026",
+    "created": "2026-08-12T00:00:00Z",
+    "proof_purpose": "assertionMethod",
+    "proof_value": "ZmFrZS1zaWduYXR1cmU"
+  }
+}

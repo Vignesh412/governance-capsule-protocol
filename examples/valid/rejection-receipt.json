@@ -1,0 +1,13 @@
+{
+  "gcp_version": "0.1",
+  "receipt_id": "urn:gcp:lifecycle-receipt:reject-001",
+  "capsule_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "task_id": "urn:gcp:task:compliance-check-001",
+  "runtime": "spiffe://example.com/runtime/compliance-1",
+  "from_state": "OFFERED",
+  "to_state": "REJECTED",
+  "timestamp": "2026-08-12T00:06:00Z",
+  "reason_codes": ["GCP_UNSUPPORTED_OBLIGATION"],
+  "evidence": [],
+  "proof": {"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verification_method": "spiffe://example.com/runtime/compliance-1#key", "created": "2026-08-12T00:06:00Z", "proof_purpose": "assertionMethod", "proof_value": "ZmFrZS1yZWplY3Rpb24"}
+}

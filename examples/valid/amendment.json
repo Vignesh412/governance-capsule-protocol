@@ -1,0 +1,13 @@
+{
+  "gcp_version": "0.1",
+  "amendment_id": "urn:gcp:amendment:001",
+  "previous_capsule_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "result_capsule_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+  "authority": "https://governance.example.com/issuers/procurement",
+  "approval_id": "urn:gcp:approval:002",
+  "changes": [{"operation": "replace", "path": "/authority/0/constraints/0", "old_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111", "new_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"}],
+  "rationale": "Risk officer approved a one-time authority adjustment for this supplier review.",
+  "issued_at": "2026-08-12T01:05:00Z",
+  "expires_at": "2026-08-12T02:00:00Z",
+  "proof": {"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verification_method": "https://governance.example.com/keys/procurement-2026", "created": "2026-08-12T01:05:00Z", "proof_purpose": "assertionMethod", "proof_value": "ZmFrZS1hbWVuZG1lbnQ"}
+}

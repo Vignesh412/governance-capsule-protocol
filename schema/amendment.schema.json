@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcp-protocol.dev/schema/v0.1/amendment.schema.json",
+  "title": "GCP Amendment v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gcp_version", "amendment_id", "previous_capsule_digest", "result_capsule_digest", "authority", "approval_id", "changes", "rationale", "issued_at", "proof"],
+  "properties": {
+    "gcp_version": {"$ref": "common.schema.json#/$defs/version"},
+    "amendment_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "previous_capsule_digest": {"$ref": "common.schema.json#/$defs/digest"},
+    "result_capsule_digest": {"$ref": "common.schema.json#/$defs/digest"},
+    "authority": {"$ref": "common.schema.json#/$defs/identifier"},
+    "approval_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "changes": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["operation", "path", "old_digest", "new_digest"],
+        "properties": {
+          "operation": {"enum": ["add", "replace", "remove"]},
+          "path": {"type": "string", "pattern": "^/"},
+          "old_digest": {"$ref": "common.schema.json#/$defs/digest"},
+          "new_digest": {"$ref": "common.schema.json#/$defs/digest"}
+        }
+      }
+    },
+    "rationale": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "issued_at": {"$ref": "common.schema.json#/$defs/timestamp"},
+    "expires_at": {"$ref": "common.schema.json#/$defs/timestamp"},
+    "proof": {"$ref": "common.schema.json#/$defs/integrityProof"}
+  }
+}

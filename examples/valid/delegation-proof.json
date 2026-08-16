@@ -1,0 +1,10 @@
+{
+  "gcp_version": "0.1",
+  "proof_id": "urn:gcp:delegation-proof:001",
+  "parent_capsule": {"capsule_id": "urn:gcp:capsule:root-001", "task_id": "urn:gcp:task:supplier-onboarding-001", "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+  "child_capsule": {"capsule_id": "urn:gcp:capsule:child-001", "task_id": "urn:gcp:task:compliance-check-001", "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"},
+  "delegator": "spiffe://example.com/agent/intake",
+  "child_subject": "spiffe://example.com/agent/compliance",
+  "issued_at": "2026-08-12T00:05:00Z",
+  "proof": {"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verification_method": "https://governance.example.com/keys/intake-2026", "created": "2026-08-12T00:05:00Z", "proof_purpose": "authentication", "proof_value": "ZmFrZS1kZWxlZ2F0aW9uLXByb29m"}
+}

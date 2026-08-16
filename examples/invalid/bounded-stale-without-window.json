@@ -1,0 +1,13 @@
+{
+  "gcp_version": "0.1",
+  "kind": "root",
+  "capsule_id": "urn:gcp:capsule:invalid-freshness",
+  "revision": 0,
+  "task": {"task_id": "urn:gcp:task:invalid", "workflow_id": "urn:gcp:workflow:invalid", "purpose": "Invalid freshness fixture"},
+  "issuer": "https://governance.example.com/issuer",
+  "subject": "spiffe://example.com/agent/a",
+  "authority": [], "obligations": [], "budgets": [], "delegation_depth": 0,
+  "validity": {"not_before": "2026-08-12T00:00:00Z", "expires_at": "2026-08-13T00:00:00Z", "freshness": {"profile": "bounded-stale", "status_endpoint": "https://governance.example.com/status"}, "replay": {"mode": "single-use", "max_uses": 1}},
+  "sequence": 0,
+  "proof": {"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verification_method": "https://governance.example.com/key", "created": "2026-08-12T00:00:00Z", "proof_value": "ZmFrZQ"}
+}

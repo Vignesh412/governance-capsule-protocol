@@ -1,0 +1,76 @@
+{
+  "gcp_version": "0.1",
+  "kind": "derived",
+  "capsule_id": "urn:gcp:capsule:child-001",
+  "revision": 0,
+  "task": {
+    "task_id": "urn:gcp:task:compliance-check-001",
+    "workflow_id": "urn:gcp:workflow:supplier-onboarding",
+    "purpose": "Perform compliance checks for supplier ACME"
+  },
+  "issuer": "https://governance.example.com/issuers/procurement",
+  "delegator": "spiffe://example.com/agent/intake",
+  "subject": "spiffe://example.com/agent/compliance",
+  "parent": {
+    "capsule_id": "urn:gcp:capsule:root-001",
+    "task_id": "urn:gcp:task:supplier-onboarding-001",
+    "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "authority": [
+    {
+      "grant_id": "urn:gcp:grant:child-vendor-read",
+      "action": "vendor.read",
+      "resource": {"match": "exact", "uri": "https://api.example.com/vendors/acme/compliance"},
+      "constraints": [{"name": "regions", "operator": "set_subset", "value": ["EU"], "critical": true}]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "urn:gcp:obligation:approval-high-risk",
+      "type": "https://gcp-protocol.dev/obligations/human-approval",
+      "version": "0.1",
+      "mandatory": true,
+      "satisfaction_point": "before_action",
+      "parameters": {"when": "risk_score>=0.80", "approver_role": "procurement-risk-officer"},
+      "source": {
+        "issuer": "https://governance.example.com/issuers/procurement",
+        "policy_ref": "https://governance.example.com/policies/vendor-risk/v3",
+        "policy_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "obligation_id": "urn:gcp:obligation:enhanced-audit",
+      "type": "https://gcp-protocol.dev/obligations/enhanced-audit",
+      "version": "0.1",
+      "mandatory": true,
+      "satisfaction_point": "during_execution",
+      "parameters": {"level": "full"},
+      "source": {
+        "issuer": "https://governance.example.com/issuers/compliance",
+        "policy_ref": "https://governance.example.com/policies/compliance-audit/v1",
+        "policy_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    }
+  ],
+  "budgets": [
+    {"dimension": "cost", "quantity": "3.00", "unit": "USD"},
+    {"dimension": "tokens", "quantity": "30000", "unit": "token"},
+    {"dimension": "risk", "quantity": "0.10", "unit": "score"}
+  ],
+  "delegation_depth": 2,
+  "validity": {
+    "not_before": "2026-08-12T00:05:00Z",
+    "expires_at": "2026-08-12T12:00:00Z",
+    "freshness": {"profile": "online-strict", "status_endpoint": "https://governance.example.com/status"},
+    "replay": {"mode": "single-use", "max_uses": 1}
+  },
+  "sequence": 0,
+  "proof": {
+    "type": "DataIntegrityProof",
+    "cryptosuite": "eddsa-jcs-2022",
+    "verification_method": "https://governance.example.com/keys/procurement-2026",
+    "created": "2026-08-12T00:05:00Z",
+    "proof_purpose": "assertionMethod",
+    "proof_value": "ZmFrZS1jaGlsZC1zaWduYXR1cmU"
+  }
+}

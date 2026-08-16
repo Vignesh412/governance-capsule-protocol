@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcp-protocol.dev/schema/v0.1/revocation.schema.json",
+  "title": "GCP Revocation Record v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gcp_version", "revocation_id", "issuer", "target", "cascade", "effective_at", "reason_code", "sequence", "proof"],
+  "properties": {
+    "gcp_version": {"$ref": "common.schema.json#/$defs/version"},
+    "revocation_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "issuer": {"$ref": "common.schema.json#/$defs/identifier"},
+    "target": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "id"],
+      "properties": {
+        "type": {"enum": ["capsule_revision", "task_lineage", "issuer_key", "subject"]},
+        "id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "digest": {"$ref": "common.schema.json#/$defs/digest"}
+      },
+      "allOf": [{"if": {"properties": {"type": {"const": "capsule_revision"}}}, "then": {"required": ["digest"]}}]
+    },
+    "cascade": {"type": "boolean"},
+    "effective_at": {"$ref": "common.schema.json#/$defs/timestamp"},
+    "reason_code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$"},
+    "sequence": {"type": "integer", "minimum": 0},
+    "proof": {"$ref": "common.schema.json#/$defs/integrityProof"}
+  }
+}

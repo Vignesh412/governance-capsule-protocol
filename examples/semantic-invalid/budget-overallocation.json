@@ -1,0 +1,6 @@
+{
+  "description": "Each child can be structurally valid while their aggregate cost allocation exceeds the parent budget. This requires ledger-aware semantic validation.",
+  "parent": "../valid/root-capsule.json",
+  "child_allocations": [{"cost": "6.00"}, {"cost": "6.00"}],
+  "expected_semantic_error": "GCP_BUDGET_OVERALLOCATED"
+}

@@ -1,0 +1,183 @@
+# Progress Log
+
+## 2026-08-11 - Project foundation
+
+### Completed
+
+- Established the mission and research question.
+- Separated the Governance Capsule Model, GCP, and CARM.
+- Defined initial scope and non-goals.
+- Recorded foundational invariants.
+- Defined the initial threat model.
+- Created milestone exit criteria and go/no-go conditions.
+- Created a structured landscape-research template.
+- Recorded the decision to describe GCP as a protocol candidate until interoperability is demonstrated.
+
+### Current hypothesis
+
+Governance continuity across heterogeneous agent delegation boundaries is not comprehensively specified by current agent SDKs or interoperability protocols.
+
+### Next work
+
+Complete the primary-source landscape review and convert the working gap hypothesis into a supported, narrowed conclusion.
+
+### Open questions
+
+- What is the minimum useful common representation of authority across vendors?
+- Which obligations can be transported without exposing confidential policy content?
+- Should v0.1 support joins, or only tree-shaped delegation with preallocated budgets?
+- Which identity and signing profile minimizes new infrastructure?
+- How quickly must revocation propagate to be meaningful?
+
+### Evidence produced
+
+- `CHARTER.md`
+- `ROADMAP.md`
+- `research/landscape-matrix.md`
+- `research/decisions/0001-project-positioning.md`
+
+## 2026-08-11 - Milestone 0 landscape review
+
+### Completed
+
+- Reviewed OpenAI Agents SDK, Claude Agent SDK and Managed Agents, Google ADK, A2A, MCP, Microsoft Agent Framework, Amazon Bedrock/AgentCore, and LangGraph from primary sources.
+- Compared native features, extension points, application-defined behavior, and missing protocol guarantees.
+- Reviewed adjacent standards for fine-grained authorization, token exchange, workload identity, signed claims, and information-flow control.
+- Identified Microsoft FIDES as a relevant near-neighbor rather than ignoring an overlapping idea.
+- Replaced the preliminary research template with a completed comparison matrix.
+- Produced a detailed source-backed landscape report.
+- Recorded Decision 0002 narrowing GCP to task-governance continuity and constrained transformation.
+
+### Result
+
+The gap hypothesis survived, but became narrower and more credible.
+
+GCP should not replace handoffs, guardrails, identity, OAuth, tracing, MCP, or A2A. It should define how task governance is inherited, attenuated, amended, divided, revoked, and evidenced across those systems.
+
+### Integration direction
+
+- A2A extension/profile for agent-to-agent task transport
+- MCP profile for governed tool calls
+- Framework-native hooks and middleware for enforcement
+- Existing authorization, workload-identity, and signed-claims standards where applicable
+
+### Next milestone
+
+Formalize the minimal GCP model and turn four invariants into executable properties:
+
+1. authority attenuation;
+2. mandatory-obligation persistence;
+3. lineage integrity; and
+4. preallocated budget conservation for tree-shaped delegation.
+
+### New evidence
+
+- `research/milestone-0-landscape-report.md`
+- `research/landscape-matrix.md`
+- `research/decisions/0002-milestone-0-gap-and-integration.md`
+
+## 2026-08-12 - Milestone 1 formal model
+
+### Completed
+
+- Defined the initial task, capsule, party, authority, obligation, budget, approval, amendment, receipt, and revocation concepts.
+- Restricted v0.1 to rooted delegation trees with exactly one parent per child.
+- Formalized authority attenuation, mandatory-obligation persistence, lineage integrity, and preallocated budget conservation.
+- Defined supporting rules for audience, time, delegation depth, replay, and fail-closed unknown semantics.
+- Added three explicit revocation freshness profiles: online-strict, bounded-stale, and offline-until-expiry.
+- Defined cascading ancestor revocation and behavior for in-progress work.
+- Mapped abuse cases to prevention, detection, or accepted residual risk.
+- Defined 24 executable properties and generated-test coverage targets.
+- Recorded Decision 0003.
+
+### Key design result
+
+A capsule cannot provide instantaneous revocation or prevent concurrent budget double spending by itself. Revocation requires authenticated status with an explicit freshness policy. Parallel allocation requires an atomic allocation authority or serialized ledger.
+
+### Deferred deliberately
+
+- Multi-parent governance joins
+- Automatic unused-budget reclamation
+- Type-specific obligation weakening
+- Distributed consensus
+- Proof that signed enforcement claims are truthful
+- Compensation semantics for completed external side effects
+
+### Next milestone
+
+Translate the formal semantics into framework-independent schemas and canonical examples without weakening the invariants.
+
+### New evidence
+
+- `spec/formal-model-v0.1.md`
+- `spec/executable-properties-v0.1.md`
+- `research/milestone-1-threat-model.md`
+- `research/decisions/0003-milestone-1-core-semantics.md`
+
+## 2026-08-12 - Milestone 2 capsule data model
+
+### Completed
+
+- Defined seven framework-independent JSON Schema artifacts covering capsules, delegation proofs, approvals, amendments, revocations, enforcement decisions, and task lifecycle transitions.
+- Selected JSON Schema 2020-12, RFC 8785 JCS, SHA-256 digests, and Ed25519 as the v0.1 wire profile.
+- Used decimal strings for conserved quantities to avoid floating-point ambiguity.
+- Required strict rejection of unknown core fields and deferred extensions until negotiation and downgrade rules exist.
+- Separated structural validation from cross-document semantic enforcement.
+- Added examples for issuance, delegation, constraint, approval, amendment, completion, rejection, and revocation.
+- Added invalid fixtures for illegal root lineage, malformed freshness policy, authority expansion, obligation removal, and budget overallocation.
+- Added a reproducible validation tool and recorded Decision 0004.
+
+### Validation result
+
+All seven schemas pass Draft 2020-12 self-checks. Nine valid fixtures are accepted, two structurally invalid fixtures are rejected, and three semantic-invalid manifests resolve to their expected deterministic error codes.
+
+### Key design result
+
+A valid JSON document is not necessarily a valid governance transition. Schema validation establishes shape; the Milestone 3 semantic validator must establish signatures, lineage, attenuation, obligation persistence, budget conservation, approval scope, and revocation freshness.
+
+### Next milestone
+
+Build the core reference library and executable conformance tests, beginning with canonicalization, hashing, signing, verification, and deterministic semantic error codes.
+
+### New evidence
+
+- `spec/wire-profile-v0.1.md`
+- `schema/`
+- `examples/`
+- `tools/validate_schemas.py`
+- `research/decisions/0004-milestone-2-wire-profile.md`
+
+## 2026-08-15 - Milestone 3 first executable slice
+
+### Completed
+
+- Created the framework-neutral Python reference package.
+- Implemented deterministic canonicalization for the GCP v0.1 JSON value domain.
+- Implemented proof-excluded SHA-256 digests and Ed25519 signing and verification.
+- Implemented a minimal trusted-key resolver.
+- Implemented ordinary delegation checks for authority attenuation, mandatory-obligation persistence, parent binding, lineage cycles, child-budget containment, validity windows, and delegation depth.
+- Implemented signed delegation-proof binding checks.
+- Added deterministic error codes and 21 unit/adversarial tests.
+- Preserved the distinction between schema fixtures with placeholder proofs and cryptographically valid test artifacts.
+- Recorded Decision 0005.
+
+### Test result
+
+`python3 -m pytest`: 21 passed.
+
+The independent Milestone 2 schema suite also remains green: nine valid fixtures accepted, two structural-invalid fixtures rejected, and three semantic-invalid manifests recognized.
+
+### Learning
+
+Stateless semantic verification and stateful governance enforcement are different components. A parent-child validator can prove attenuation and signed linkage for one transition, but it cannot truthfully claim aggregate budget conservation, replay prevention, or current revocation status without trusted shared state.
+
+### Next work
+
+Implement the atomic allocation ledger, replay/use registry, and revocation freshness evaluator before calling Milestone 3 complete.
+
+### New evidence
+
+- `src/gcp_reference/`
+- `tests/`
+- `docs/reference-library.md`
+- `research/decisions/0005-reference-library-boundary.md`

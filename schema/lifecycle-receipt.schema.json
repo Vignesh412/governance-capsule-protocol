@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcp-protocol.dev/schema/v0.1/lifecycle-receipt.schema.json",
+  "title": "GCP Task Lifecycle Receipt v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gcp_version", "receipt_id", "capsule_digest", "task_id", "runtime", "from_state", "to_state", "timestamp", "reason_codes", "evidence", "proof"],
+  "properties": {
+    "gcp_version": {"$ref": "common.schema.json#/$defs/version"},
+    "receipt_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "capsule_digest": {"$ref": "common.schema.json#/$defs/digest"},
+    "task_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "runtime": {"$ref": "common.schema.json#/$defs/identifier"},
+    "from_state": {"$ref": "common.schema.json#/$defs/taskState"},
+    "to_state": {"$ref": "common.schema.json#/$defs/taskState"},
+    "timestamp": {"$ref": "common.schema.json#/$defs/timestamp"},
+    "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^GCP_[A-Z0-9_]+$"}},
+    "result": {"$ref": "common.schema.json#/$defs/evidenceReference"},
+    "evidence": {"type": "array", "items": {"$ref": "common.schema.json#/$defs/evidenceReference"}},
+    "proof": {"$ref": "common.schema.json#/$defs/integrityProof"}
+  },
+  "allOf": [
+    {"if": {"properties": {"to_state": {"const": "COMPLETED"}}}, "then": {"required": ["result"]}},
+    {"if": {"properties": {"to_state": {"enum": ["FAILED", "REJECTED", "REVOKED"]}}}, "then": {"properties": {"reason_codes": {"minItems": 1}}}}
+  ]
+}

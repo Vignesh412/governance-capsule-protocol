@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcp-protocol.dev/schema/v0.1/common.schema.json",
+  "title": "GCP v0.1 Common Types",
+  "$defs": {
+    "version": {"const": "0.1"},
+    "identifier": {"type": "string", "format": "uri", "minLength": 1, "maxLength": 512},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "base64url": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
+    "decimal": {"type": "string", "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"},
+    "integrityProof": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "cryptosuite", "verification_method", "created", "proof_value"],
+      "properties": {
+        "type": {"const": "DataIntegrityProof"},
+        "cryptosuite": {"const": "eddsa-jcs-2022"},
+        "verification_method": {"$ref": "#/$defs/identifier"},
+        "created": {"$ref": "#/$defs/timestamp"},
+        "proof_purpose": {"enum": ["assertionMethod", "authentication"]},
+        "proof_value": {"$ref": "#/$defs/base64url"}
+      }
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri", "digest"],
+      "properties": {
+        "uri": {"$ref": "#/$defs/identifier"},
+        "digest": {"$ref": "#/$defs/digest"},
+        "media_type": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "operator", "value"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,127}$"},
+        "operator": {"enum": ["equals", "decimal_lte", "set_subset"]},
+        "value": {
+          "anyOf": [
+            {"type": "string", "minLength": 1, "maxLength": 512},
+            {"$ref": "#/$defs/decimal"},
+            {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 256}}
+          ]
+        },
+        "critical": {"type": "boolean", "default": true}
+      },
+      "allOf": [
+        {"if": {"properties": {"operator": {"const": "decimal_lte"}}}, "then": {"properties": {"value": {"$ref": "#/$defs/decimal"}}}},
+        {"if": {"properties": {"operator": {"const": "set_subset"}}}, "then": {"properties": {"value": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}}}}
+      ]
+    },
+    "authorityGrant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["grant_id", "action", "resource"],
+      "properties": {
+        "grant_id": {"$ref": "#/$defs/identifier"},
+        "action": {"type": "string", "pattern": "^[a-z][a-z0-9_.:-]{0,127}$"},
+        "resource": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["match", "uri"],
+          "properties": {
+            "match": {"enum": ["exact", "prefix"]},
+            "uri": {"$ref": "#/$defs/identifier"}
+          }
+        },
+        "constraints": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/constraint"}}
+      }
+    },
+    "obligation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["obligation_id", "type", "version", "mandatory", "satisfaction_point", "parameters", "source"],
+      "properties": {
+        "obligation_id": {"$ref": "#/$defs/identifier"},
+        "type": {"$ref": "#/$defs/identifier"},
+        "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"},
+        "mandatory": {"type": "boolean"},
+        "satisfaction_point": {"enum": ["before_action", "during_execution", "before_completion"]},
+        "parameters": {"type": "object"},
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["issuer", "policy_ref", "policy_digest"],
+          "properties": {
+            "issuer": {"$ref": "#/$defs/identifier"},
+            "policy_ref": {"$ref": "#/$defs/identifier"},
+            "policy_digest": {"$ref": "#/$defs/digest"}
+          }
+        }
+      }
+    },
+    "budgetItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "quantity", "unit"],
+      "properties": {
+        "dimension": {"enum": ["cost", "tokens", "risk", "time"]},
+        "quantity": {"$ref": "#/$defs/decimal"},
+        "unit": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9._/-]{0,31}$"}
+      }
+    },
+    "freshness": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["profile", "status_endpoint"],
+          "properties": {"profile": {"const": "online-strict"}, "status_endpoint": {"$ref": "#/$defs/identifier"}}
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["profile", "status_endpoint", "max_staleness_seconds"],
+          "properties": {
+            "profile": {"const": "bounded-stale"},
+            "status_endpoint": {"$ref": "#/$defs/identifier"},
+            "max_staleness_seconds": {"type": "integer", "minimum": 0, "maximum": 86400}
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["profile"],
+          "properties": {"profile": {"const": "offline-until-expiry"}}
+        }
+      ]
+    },
+    "replayPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {"enum": ["single-use", "multi-use"]},
+        "max_uses": {"type": "integer", "minimum": 1}
+      },
+      "allOf": [
+        {"if": {"properties": {"mode": {"const": "single-use"}}}, "then": {"properties": {"max_uses": {"const": 1}}}}
+      ]
+    },
+    "decision": {"enum": ["ALLOW", "ALLOW_WITH_CONTROLS", "APPROVAL_REQUIRED", "BLOCK"]},
+    "taskState": {"enum": ["CREATED", "OFFERED", "ACCEPTED", "EXECUTING", "SUSPENDED", "COMPLETED", "FAILED", "REJECTED", "CANCELED", "REVOKED"]}
+  }
+}

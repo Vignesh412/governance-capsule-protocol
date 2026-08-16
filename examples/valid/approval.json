@@ -1,0 +1,12 @@
+{
+  "gcp_version": "0.1",
+  "approval_id": "urn:gcp:approval:001",
+  "approver": "https://identity.example.com/users/risk-officer-7",
+  "capsule_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "scope": {"type": "action", "action": "vendor.approve", "resource": "https://api.example.com/vendors/acme"},
+  "issued_at": "2026-08-12T01:00:00Z",
+  "expires_at": "2026-08-12T02:00:00Z",
+  "max_uses": 1,
+  "evidence": [{"uri": "https://audit.example.com/approvals/001", "digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "media_type": "application/json"}],
+  "proof": {"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verification_method": "https://identity.example.com/keys/risk-officer-7", "created": "2026-08-12T01:00:00Z", "proof_purpose": "assertionMethod", "proof_value": "ZmFrZS1hcHByb3ZhbA"}
+}

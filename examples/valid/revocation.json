@@ -1,0 +1,11 @@
+{
+  "gcp_version": "0.1",
+  "revocation_id": "urn:gcp:revocation:001",
+  "issuer": "https://governance.example.com/issuers/procurement",
+  "target": {"type": "capsule_revision", "id": "urn:gcp:capsule:root-001", "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+  "cascade": true,
+  "effective_at": "2026-08-12T06:00:00Z",
+  "reason_code": "AUTHORITY_WITHDRAWN",
+  "sequence": 1,
+  "proof": {"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verification_method": "https://governance.example.com/keys/procurement-2026", "created": "2026-08-12T06:00:00Z", "proof_purpose": "assertionMethod", "proof_value": "ZmFrZS1yZXZvY2F0aW9u"}
+}

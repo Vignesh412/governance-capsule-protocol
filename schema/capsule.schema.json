@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcp-protocol.dev/schema/v0.1/capsule.schema.json",
+  "title": "Governance Capsule v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gcp_version", "kind", "capsule_id", "revision", "task", "issuer", "subject", "authority", "obligations", "budgets", "delegation_depth", "validity", "sequence", "proof"],
+  "properties": {
+    "gcp_version": {"$ref": "common.schema.json#/$defs/version"},
+    "kind": {"enum": ["root", "derived"]},
+    "capsule_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "revision": {"type": "integer", "minimum": 0},
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["task_id", "workflow_id", "purpose"],
+      "properties": {
+        "task_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "workflow_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "purpose": {"type": "string", "minLength": 1, "maxLength": 1024}
+      }
+    },
+    "issuer": {"$ref": "common.schema.json#/$defs/identifier"},
+    "delegator": {"$ref": "common.schema.json#/$defs/identifier"},
+    "subject": {"$ref": "common.schema.json#/$defs/identifier"},
+    "parent": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capsule_id", "task_id", "digest"],
+      "properties": {
+        "capsule_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "task_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "digest": {"$ref": "common.schema.json#/$defs/digest"}
+      }
+    },
+    "authority": {"type": "array", "uniqueItems": true, "items": {"$ref": "common.schema.json#/$defs/authorityGrant"}},
+    "obligations": {"type": "array", "uniqueItems": true, "items": {"$ref": "common.schema.json#/$defs/obligation"}},
+    "budgets": {"type": "array", "uniqueItems": true, "items": {"$ref": "common.schema.json#/$defs/budgetItem"}},
+    "delegation_depth": {"type": "integer", "minimum": 0},
+    "validity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["not_before", "expires_at", "freshness", "replay"],
+      "properties": {
+        "not_before": {"$ref": "common.schema.json#/$defs/timestamp"},
+        "expires_at": {"$ref": "common.schema.json#/$defs/timestamp"},
+        "freshness": {"$ref": "common.schema.json#/$defs/freshness"},
+        "replay": {"$ref": "common.schema.json#/$defs/replayPolicy"}
+      }
+    },
+    "sequence": {"type": "integer", "minimum": 0},
+    "proof": {"$ref": "common.schema.json#/$defs/integrityProof"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"const": "root"}}, "required": ["kind"]},
+      "then": {"not": {"anyOf": [{"required": ["parent"]}, {"required": ["delegator"]}]}, "properties": {"revision": {"const": 0}}}
+    },
+    {
+      "if": {"properties": {"kind": {"const": "derived"}}, "required": ["kind"]},
+      "then": {"required": ["parent", "delegator"]}
+    }
+  ]
+}

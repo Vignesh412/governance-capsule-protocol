@@ -1,0 +1,6 @@
+{
+  "description": "This fixture removes the inherited approval obligation and must later fail semantic validation.",
+  "schema_fixture": "../valid/child-capsule.json",
+  "mutation": {"path": "/obligations/0", "operation": "remove"},
+  "expected_semantic_error": "GCP_OBLIGATION_REMOVED"
+}

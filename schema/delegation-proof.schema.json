@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gcp-protocol.dev/schema/v0.1/delegation-proof.schema.json",
+  "title": "GCP Delegation Proof v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gcp_version", "proof_id", "parent_capsule", "child_capsule", "delegator", "child_subject", "issued_at", "proof"],
+  "properties": {
+    "gcp_version": {"$ref": "common.schema.json#/$defs/version"},
+    "proof_id": {"$ref": "common.schema.json#/$defs/identifier"},
+    "parent_capsule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capsule_id", "task_id", "digest"],
+      "properties": {
+        "capsule_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "task_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "digest": {"$ref": "common.schema.json#/$defs/digest"}
+      }
+    },
+    "child_capsule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capsule_id", "task_id", "digest"],
+      "properties": {
+        "capsule_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "task_id": {"$ref": "common.schema.json#/$defs/identifier"},
+        "digest": {"$ref": "common.schema.json#/$defs/digest"}
+      }
+    },
+    "delegator": {"$ref": "common.schema.json#/$defs/identifier"},
+    "child_subject": {"$ref": "common.schema.json#/$defs/identifier"},
+    "issued_at": {"$ref": "common.schema.json#/$defs/timestamp"},
+    "proof": {"$ref": "common.schema.json#/$defs/integrityProof"}
+  }
+}

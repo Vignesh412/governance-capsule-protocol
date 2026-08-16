@@ -1,0 +1,6 @@
+{
+  "description": "This fixture is structurally valid only. It requests vendor.delete, which is absent from the parent authority and must later fail with GCP_AUTHORITY_EXPANSION.",
+  "schema_fixture": "../valid/child-capsule.json",
+  "mutation": {"path": "/authority/0/action", "value": "vendor.delete"},
+  "expected_semantic_error": "GCP_AUTHORITY_EXPANSION"
+}
