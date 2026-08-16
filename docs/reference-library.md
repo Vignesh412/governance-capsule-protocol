@@ -1,6 +1,6 @@
 # GCP Reference Library
 
-Status: Milestone 3, second executable slice
+Status: Milestone 3, third executable slice
 
 The Python package under `src/gcp_reference` turns the v0.1 wire profile and formal invariants into executable checks.
 
@@ -14,27 +14,35 @@ The Python package under `src/gcp_reference` turns the v0.1 wire profile and for
 - mandatory-obligation persistence;
 - parent linkage and delegation-proof binding;
 - single-child budget containment and unit checks;
-- temporal attenuation and delegation-depth checks; and
+- temporal attenuation and delegation-depth checks;
 - atomic process-local sibling-budget allocation;
 - atomic replay and use-count tracking;
 - audience validation;
 - online-strict, bounded-stale, and offline-until-expiry evaluation;
 - cascading ancestor-revocation checks;
-- structured revocation evidence for future receipts; and
+- structured revocation evidence for future receipts;
+- public structural-validation API over the v0.1 schema bundle;
+- signed capsule-revision revocation verification and runtime-status adaptation;
+- declared issuer, approver, and amendment-authority binding to permitted signing keys;
+- exact capsule, action, resource, amendment-change, and validity scoping for approvals;
+- atomic approval use consumption; and
+- amendment binding to signed previous/result capsule digests and consecutive revisions; and
 - deterministic protocol error codes.
 
 ## Deliberately not implemented yet
 
-- approval consumption and amendment authorization;
-- schema validation as part of the public API;
 - generated property-test coverage targets; and
 - receipt creation and verification helpers.
 
 The allocation ledger, use registry, and status cache are process-local reference implementations. Production adapters must provide equivalent atomicity and durability through transactional storage.
 
-The revocation evaluator accepts `StatusRecord` values from a trusted adapter and requires `authenticated=True`. This slice does not yet cryptographically verify a signed revocation artifact inside the evaluator. The distinction is intentional and must remain visible.
+`status_from_signed_revocation` proves and adapts a positive, signed revocation record for one exact capsule revision. Absence of a revocation record is not cryptographic proof that a capsule remains active; online active-status responses still rely on a trusted adapter pending a signed status-response profile.
 
-These require stateful components or additional protocol rules and must not be implied by the stateless validator.
+Amendments bind the signed previous capsule, signed result capsule, ordered change declaration, approval, identity, and consecutive revision. This slice does not yet recompute every declared JSON Pointer and old/new value digest from the actual capsule diff. Until that lands, the declaration is tamper-evident but not independently proven complete.
+
+Root capsules may advance beyond revision zero through amendment while remaining lineage roots. They still cannot acquire `parent` or `delegator` fields.
+
+These remaining guarantees require additional protocol rules and must not be implied by the current validator.
 
 ## Run
 
