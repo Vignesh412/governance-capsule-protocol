@@ -181,3 +181,19 @@ Implement the atomic allocation ledger, replay/use registry, and revocation fres
 - `tests/`
 - `docs/reference-library.md`
 - `research/decisions/0005-reference-library-boundary.md`
+
+## 2026-08-16 - Public repository launched
+
+### Published
+
+- Published the project at `https://github.com/Vignesh412/governance-capsule-protocol`.
+- Made `main` the default branch.
+- Included the charter, roadmap, primary-source research, formal model, schemas, examples, reference-library slice, tests, decision records, progress log, and build-in-public visuals.
+- Excluded local caches, scratch outputs, secrets, and extracted third-party source material.
+- Kept the repository all rights reserved until a license is selected deliberately.
+
+### Verified
+
+- The repository is publicly visible.
+- The README, semantic validator, adversarial tests, and ignore rules are accessible from the default branch.
+- The GitHub owner account has administrative and push access.
