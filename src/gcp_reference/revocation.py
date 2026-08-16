@@ -6,6 +6,7 @@ from threading import Lock
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple
 
 from .crypto import artifact_digest
+from .crypto import KeyResolver, verify_artifact
 from .errors import ErrorCode, GCPError
 
 
@@ -16,6 +17,61 @@ class StatusRecord:
     revoked: bool
     cascade: bool = False
     authenticated: bool = True
+    status_digest: Optional[str] = None
+
+
+def _parse_time(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def status_from_signed_revocation(
+    record: Mapping[str, Any],
+    capsule: Mapping[str, Any],
+    *,
+    resolver: KeyResolver,
+    authorized_issuers: Mapping[str, Sequence[str]],
+    checked_at: datetime,
+    validate_schema: bool = True,
+) -> StatusRecord:
+    """Verify and adapt one capsule-revision revocation into runtime status.
+
+    This proves a positive revocation record. It does not treat the absence of a
+    record as a signed proof that a capsule remains active.
+    """
+
+    if validate_schema:
+        from .schema import validate_structure
+
+        validate_structure(record, "revocation.schema.json")
+    verify_artifact(record, resolver)
+    permitted_methods = authorized_issuers.get(record["issuer"], ())
+    verification_method = record["proof"]["verification_method"]
+    if verification_method not in permitted_methods:
+        raise GCPError(
+            ErrorCode.UNAUTHORIZED_REVOCATION,
+            "Revocation issuer is not authorized for this enforcement domain",
+            {"issuer": record["issuer"], "verification_method": verification_method},
+        )
+    digest = artifact_digest(capsule)
+    target = record["target"]
+    if (
+        target["type"] != "capsule_revision"
+        or target["id"] != capsule["capsule_id"]
+        or target.get("digest") != digest
+    ):
+        raise GCPError(
+            ErrorCode.REVOCATION_TARGET_MISMATCH,
+            "Revocation record does not target this capsule revision",
+            {"capsule_digest": digest},
+        )
+    return StatusRecord(
+        capsule_digest=digest,
+        checked_at=checked_at,
+        revoked=checked_at >= _parse_time(record["effective_at"]),
+        cascade=record["cascade"],
+        authenticated=True,
+        status_digest=artifact_digest(record),
+    )
 
 
 @dataclass(frozen=True)
