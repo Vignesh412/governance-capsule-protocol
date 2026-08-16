@@ -229,3 +229,43 @@ Portable proof and shared enforcement state are complementary. The capsule and d
 - Integrate structural schema validation into the public API.
 - Generate signed enforcement and lifecycle receipts.
 - Add the required randomized property-test coverage.
+
+## 2026-08-16 - Milestone 3 scoped-control slice
+
+### Completed
+
+- Integrated Draft 2020-12 structural validation into the public Python API with deterministic error details.
+- Implemented verification and runtime adaptation of signed revocation records targeting one exact capsule revision.
+- Required declared revocation issuers, approvers, and amendment authorities to be bound to explicitly permitted verification methods.
+- Implemented approval validation for exact capsule digest, operation type, action, resource, amendment-change digest, validity window, and use limit.
+- Implemented atomic approval consumption, including a concurrent single-use race test.
+- Implemented amendment authorization over signed previous/result capsule digests, the approved change declaration, same capsule/task identity, and consecutive revision and sequence rules.
+- Corrected the capsule schema so a lineage root may advance revision through amendment without acquiring a parent or delegator.
+- Recorded Decision 0007.
+
+### Test result
+
+`python3 -m pytest`: 49 passed.
+
+The independent schema suite remains green: nine valid fixtures accepted, two structurally invalid fixtures rejected, and three semantic-invalid manifests recognized.
+
+### Learning
+
+Trusting a key and trusting a claimed role are separate decisions. Signature verification proves possession of a private key; an enforcement domain must also bind the artifact's declared issuer, approver, or authority to the verification methods permitted to act in that role.
+
+A signed revocation record proves revocation when one is present and effective. It does not prove that no revocation exists. A cryptographically complete online check therefore needs a signed active/revoked status-response profile, not only signed revocation events.
+
+### Remaining before Milestone 3 completion
+
+- Recompute declared amendment paths and old/new digests from the actual capsule diff.
+- Define and verify signed active/revoked status responses.
+- Generate signed enforcement and lifecycle receipts.
+- Add the required randomized property-test coverage.
+
+### New evidence
+
+- `src/gcp_reference/schema.py`
+- `src/gcp_reference/approval.py`
+- `src/gcp_reference/revocation.py`
+- `tests/test_protocol_controls.py`
+- `research/decisions/0007-scoped-control-verification.md`
