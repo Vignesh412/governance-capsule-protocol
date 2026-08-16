@@ -51,7 +51,7 @@
   "allOf": [
     {
       "if": {"properties": {"kind": {"const": "root"}}, "required": ["kind"]},
-      "then": {"not": {"anyOf": [{"required": ["parent"]}, {"required": ["delegator"]}]}, "properties": {"revision": {"const": 0}}}
+      "then": {"not": {"anyOf": [{"required": ["parent"]}, {"required": ["delegator"]}]}}
     },
     {
       "if": {"properties": {"kind": {"const": "derived"}}, "required": ["kind"]},
