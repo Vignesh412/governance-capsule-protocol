@@ -183,3 +183,14 @@ def validate_delegation_proof(
         if exc.code in {ErrorCode.INVALID_SIGNATURE, ErrorCode.UNKNOWN_VERIFICATION_METHOD}:
             raise GCPError(ErrorCode.INVALID_DELEGATION_PROOF, "Delegation proof signature is invalid") from exc
         raise
+
+
+def validate_audience(capsule: Mapping[str, Any], presenter: str) -> None:
+    """Require the exercising runtime to match the capsule subject."""
+
+    if capsule.get("subject") != presenter:
+        raise GCPError(
+            ErrorCode.WRONG_AUDIENCE,
+            "Capsule was presented by a subject outside its audience",
+            {"expected": capsule.get("subject"), "presenter": presenter},
+        )
