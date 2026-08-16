@@ -32,7 +32,7 @@ Milestone 1 is complete. It defines the minimal model, explicit revocation fresh
 
 Milestone 2 is complete. It defines a strict framework-independent wire profile; schemas for capsules, delegation proofs, approvals, amendments, revocations, enforcement receipts, and lifecycle receipts; and valid, structurally invalid, and semantically invalid examples.
 
-Milestone 3 is in progress. Its first executable slice implements deterministic canonicalization, SHA-256 artifact digests, Ed25519 signing and verification, ordinary-delegation validation, delegation-proof validation, and deterministic failures for authority, obligation, lineage, budget, time, and depth violations. Stateful allocation, replay, and revocation enforcement remain next.
+Milestone 3 is in progress. The reference library now implements deterministic canonicalization, SHA-256 artifact digests, Ed25519 signing and verification, ordinary-delegation and delegation-proof validation, atomic in-memory budget allocation, replay/use tracking, audience checks, and revocation-freshness evaluation. Approval consumption, receipt helpers, schema integration, signed-status adapters, and generated property-test coverage remain.
 
 See [CHARTER.md](CHARTER.md), [ROADMAP.md](ROADMAP.md), [research/milestone-0-landscape-report.md](research/milestone-0-landscape-report.md), [spec/formal-model-v0.1.md](spec/formal-model-v0.1.md), [spec/wire-profile-v0.1.md](spec/wire-profile-v0.1.md), [schema/README.md](schema/README.md), [docs/reference-library.md](docs/reference-library.md), and [journey/progress-log.md](journey/progress-log.md).
 
