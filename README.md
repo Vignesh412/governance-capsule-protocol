@@ -22,7 +22,9 @@ GCP is worth building if it can demonstrate that a governed task can cross indep
 
 1. **Governance Capsule Model** - the portable governance data model.
 2. **Governance Capsule Protocol** - the lifecycle and interchange rules.
-3. **CARM** - a reference runtime that evaluates inherited governance and issues enforcement decisions and receipts.
+3. **Governed Action Gateway** - the trusted reference monitor controlling consequential side effects.
+4. **CARM** - the Cascade-Aware Resolution Mechanism for conflicts among otherwise valid policies.
+5. **CARM-SE and RIG-aware evidence handling** - certified selective automation plus evidence acquisition or abstention when the correct resolution is not identifiable.
 
 ## Current status
 
@@ -34,7 +36,9 @@ Milestone 2 is complete. It defines a strict framework-independent wire profile;
 
 Milestone 3 is in progress. The reference library now implements deterministic canonicalization, SHA-256 artifact digests, Ed25519 signing and verification, ordinary-delegation and delegation-proof validation, atomic in-memory budget allocation, replay/use tracking, audience checks, revocation-freshness evaluation, schema validation, signed revocation-record adaptation, scoped approval consumption, and amendment authorization. Receipt helpers, a signed active-status response profile, complete amendment-diff verification, and generated property-test coverage remain.
 
-See [CHARTER.md](CHARTER.md), [ROADMAP.md](ROADMAP.md), [research/milestone-0-landscape-report.md](research/milestone-0-landscape-report.md), [spec/formal-model-v0.1.md](spec/formal-model-v0.1.md), [spec/wire-profile-v0.1.md](spec/wire-profile-v0.1.md), [schema/README.md](schema/README.md), [docs/reference-library.md](docs/reference-library.md), and [journey/progress-log.md](journey/progress-log.md).
+The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
+
+See [CHARTER.md](CHARTER.md), [ROADMAP.md](ROADMAP.md), [docs/product-architecture-rfc-v0.1.md](docs/product-architecture-rfc-v0.1.md), [research/milestone-0-landscape-report.md](research/milestone-0-landscape-report.md), [spec/formal-model-v0.1.md](spec/formal-model-v0.1.md), [spec/wire-profile-v0.1.md](spec/wire-profile-v0.1.md), [schema/README.md](schema/README.md), [docs/reference-library.md](docs/reference-library.md), and [journey/progress-log.md](journey/progress-log.md).
 
 ## Run locally
 
