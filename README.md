@@ -48,6 +48,8 @@ Durable commit-intent recovery now covers process stops immediately before and i
 
 The gateway now also has a concrete signed-capsule kernel. A real root capsule is schema-checked, signature-verified, issuer-authorized, audience- and time-checked, revocation-checked, authority-matched, obligation-checked, and replay-limited before local policy or supplier access. Negative tests prove these failures short-circuit the downstream path.
 
+The same gateway path now accepts a signed ordinary delegation chain. It verifies every capsule and attenuation transition, the delegation proof and delegator role, inherited obligations and budget containment, and cascading ancestor revocation before authorizing the leaf agent's supplier action.
+
 The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
 
 A 2026-08-19 competitive refresh identified Microsoft Agent Governance Toolkit as the closest implementation baseline and changed the build strategy: reuse existing policy, identity, approval, receipt, escalation, and adapter primitives where possible; build and test the distinct graph/evidence/recovery layer comparatively.
@@ -67,6 +69,7 @@ python3 tools/run_gateway_demo.py
 python3 tools/run_durable_gateway_demo.py
 python3 tools/run_outbox_recovery_demo.py
 python3 tools/run_signed_capsule_gateway_demo.py
+python3 tools/run_delegated_gateway_demo.py
 ```
 
 The example schema fixtures contain placeholder proof values. The cryptographic test suite creates fresh Ed25519 keys and internally consistent signed artifacts.
