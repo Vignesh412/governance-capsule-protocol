@@ -1,6 +1,6 @@
 # GCP Reference Library
 
-Status: Milestone 3, third executable slice
+Status: Milestone 3 core controls plus the first Milestone 5 comparative slice
 
 The Python package under `src/gcp_reference` turns the v0.1 wire profile and formal invariants into executable checks.
 
@@ -27,6 +27,11 @@ The Python package under `src/gcp_reference` turns the v0.1 wire profile and for
 - exact capsule, action, resource, amendment-change, and validity scoping for approvals;
 - atomic approval use consumption; and
 - amendment binding to signed previous/result capsule digests and consecutive revisions; and
+- a validated and digest-bound Governance Graph with explicit join semantics;
+- join-aware downstream-reach and topology-confidence evidence;
+- a framework-neutral policy-runtime adapter boundary;
+- deterministic CARM PE, NR, and EB selection with outcome-aware blocking safeguards;
+- most-restrictive and fixed-priority comparison baselines; and
 - deterministic protocol error codes.
 
 ## Deliberately not implemented yet
@@ -51,6 +56,9 @@ From the repository root:
 ```sh
 python3 -m pytest
 python3 tools/validate_schemas.py
+python3 tools/run_competitive_slice.py
 ```
+
+The competitive slice demonstrates that CARM decisions can change with verified downstream reach while topology-blind baselines do not. It is not evidence that the selected decisions are correct or safer. See `docs/competitive-slice-v0.1.md` for the scenario, result, and limitations.
 
 The schema examples contain placeholder proofs and digests because they test representation. The cryptographic tests construct fresh Ed25519 keys and internally consistent signed artifacts.
