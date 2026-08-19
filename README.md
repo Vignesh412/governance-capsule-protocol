@@ -42,6 +42,8 @@ A Microsoft ACS adapter now maps the five published ACS verdicts into normalized
 
 The first product-shaped Governed Action Gateway slice is now executable. It mediates one protected supplier connector, binds action IDs to proposal digests, preserves policy controls, stops rejected or approval-bound actions before connector access, signs decision receipts, and reconciles an ambiguous successful commit without issuing a duplicate supplier creation. Its state is process-local and it is not production-ready.
 
+A restart-safe SQLite reference profile now persists the action ledger. The durable demonstration restarts the gateway after an ambiguous successful supplier commit, recovers the unknown state, reconciles it, and returns the recorded committed result on retry without another connector call. This is a single-host durability result, not yet the planned PostgreSQL/outbox production profile.
+
 The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
 
 A 2026-08-19 competitive refresh identified Microsoft Agent Governance Toolkit as the closest implementation baseline and changed the build strategy: reuse existing policy, identity, approval, receipt, escalation, and adapter primitives where possible; build and test the distinct graph/evidence/recovery layer comparatively.
@@ -58,6 +60,7 @@ python3 -m pytest
 python3 tools/validate_schemas.py
 python3 tools/run_competitive_slice.py
 python3 tools/run_gateway_demo.py
+python3 tools/run_durable_gateway_demo.py
 ```
 
 The example schema fixtures contain placeholder proof values. The cryptographic test suite creates fresh Ed25519 keys and internally consistent signed artifacts.
