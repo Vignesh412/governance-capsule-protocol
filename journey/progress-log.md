@@ -318,6 +318,44 @@ Finish Milestone 3 with amendment-diff verification, signed active-status respon
 
 The original primitives are becoming a category, not a moat. Product value must come from composing them into evidence-aware, cascade-aware governed execution and proving that the combination improves real decisions and recovery across heterogeneous systems.
 
+## 2026-08-19 - First graph-sensitive comparative slice
+
+### Completed
+
+- Added a framework-neutral policy-runtime boundary intended for AGT ACS, OPA, Cedar, or another evaluator.
+- Implemented a deterministic Governance Graph with DAG validation, snapshot digests, explicit AND/OR/UNKNOWN join semantics, and declaration confidence.
+- Implemented join-aware downstream reach using the CARM paper's AND and OR weights.
+- Implemented deterministic CARM conflict detection and PE, NR, and EB selection.
+- Added outcome-aware rerouting so a tentative automated block requires escalation in the default profile.
+- Added most-restrictive and fixed-priority baselines.
+- Created a reproducible supplier-onboarding experiment and recorded Decision 0010.
+
+### Test result
+
+`python3 -m pytest`: 59 passed.
+
+The independent schema suite remains green: nine valid fixtures accepted, two structurally invalid fixtures rejected, and three semantic-invalid manifests recognized.
+
+### Result
+
+With the same regulatory `ALLOW` and organizational `BLOCK` evaluations, most-restrictive always blocks and fixed priority always allows. CARM requires approval when the conflict occurs at the intake node with downstream reach 4, but selects priority enforcement and allows at the final node with downstream reach 0.
+
+This establishes deterministic graph sensitivity, not decision correctness or superiority. No external governance runtime, human escalation execution, CARM-SE, or RIG behavior is included yet.
+
+### Next work
+
+Integrate Microsoft AGT ACS through the policy-runtime boundary, bind full decision receipts to policy/graph/evidence/configuration snapshots, and define outcome and review-burden measurements.
+
+### New evidence
+
+- `src/gcp_reference/governance_graph.py`
+- `src/gcp_reference/policy.py`
+- `src/gcp_reference/carm.py`
+- `tests/test_carm.py`
+- `tools/run_competitive_slice.py`
+- `docs/competitive-slice-v0.1.md`
+- `research/decisions/0010-graph-sensitive-comparative-slice.md`
+
 ### Next work
 
 Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
