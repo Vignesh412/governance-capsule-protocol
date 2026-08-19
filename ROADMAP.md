@@ -144,6 +144,8 @@ The action ledger now also has a transactional SQLite profile. A second gateway 
 
 The SQLite profile now persists a recoverable proposal with every `COMMITTING` intent and enumerates pending work after restart. Fault-injection tests cover process stops immediately before and after connector invocation. A leased asynchronous outbox worker, revision-checked transitions, and PostgreSQL multi-instance execution remain.
 
+The gateway now invokes a concrete signed root-capsule verifier before policy or connector access. Schema, proof, issuer role, audience, time, revocation, action authority, registered constraints, mandatory obligations, and replay are enforced. Derived lineage composition, durable replay/approval/budget state, and signed active-status responses remain.
+
 ## M5 - CARM baseline and Governance Graph
 
 Status: In progress (started 2026-08-19)
