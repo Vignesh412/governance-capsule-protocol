@@ -159,6 +159,8 @@ Status: In progress (started 2026-08-19)
 
 The first executable slice validates and digests an AND-join supplier workflow and compares the same policy conflict at two graph positions. Most-restrictive and fixed-priority baselines remain unchanged; CARM escalates at the high-reach intake node and selects priority enforcement at the zero-reach leaf. External-runtime integration, complete decision receipts, stale/adversarial topology tests, and outcome-based evaluation remain.
 
+The Microsoft ACS normalization adapter and source-shaped contract tests are implemented. A live ACS manifest run remains pending in Python 3.11+, and the milestone must continue to describe the external integration as incomplete until that gate passes.
+
 ## M6 - RIG evidence resolver and CARM-SE
 
 ### Work
