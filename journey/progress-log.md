@@ -534,3 +534,25 @@ Finish the remaining trusted-kernel items, then build the competitive vertical s
 
 - `research/competitive-architecture-report-2026-08-19.md`
 - `research/decisions/0009-competitive-repositioning.md`
+
+## 2026-08-19 - Cross-framework governed delegation proof
+
+### Built
+
+- Added a signed cross-framework GCP transport binding source runtime, destination runtime, exact proposal, complete delegation lineage, expiry, and a single-use nonce.
+- Added an OpenAI Agents SDK handoff-shaped source adapter that stores governance in application-owned run context rather than model-generated metadata.
+- Added a Google ADK before-tool-shaped receiving boundary that verifies transport before composing the existing delegated-capsule kernel.
+- Carried cross-framework source, destination, transport, and lineage controls into the signed gateway receipt.
+- Added deterministic rejection coverage for transport tampering, nonce replay, authority expansion, and cascading root revocation.
+- Added the cross-framework proof as the first guided visual-demo scenario and a standalone terminal demonstration.
+- Generated an official Google ADK prototype scaffold in a temporary directory and adapted only the callback contracts required by the existing product architecture.
+
+### Verification
+
+`python3 -m pytest`: 100 passed, 2 optional native integration gates skipped locally.
+
+`python3 tools/run_cross_framework_demo.py`: OpenAI-to-Google-ADK route committed once with verified lineage, three cross-framework controls, one connector call, and one supplier.
+
+### Claim boundary
+
+This is a deterministic SDK-contract proof, not yet a native model-driven SDK execution result. The native construction test is ready behind the `frameworks` extra, but the restricted sandbox could not download its PyPI dependencies.
