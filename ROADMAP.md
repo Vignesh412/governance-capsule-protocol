@@ -136,6 +136,8 @@ Status: Complete (2026-08-19)
 
 ## M5 - CARM baseline and Governance Graph
 
+Status: In progress (started 2026-08-19)
+
 ### Work
 
 - Implement typed valid-policy conflicts and PE, NR, and EB.
@@ -152,6 +154,10 @@ Status: Complete (2026-08-19)
 - Unknown or stale topology cannot be interpreted as zero downstream reach.
 - The paper's baseline mechanism is reproduced before broader product claims.
 - At least one scenario demonstrates a measurable decision difference caused by verified downstream consequences.
+
+### Current evidence
+
+The first executable slice validates and digests an AND-join supplier workflow and compares the same policy conflict at two graph positions. Most-restrictive and fixed-priority baselines remain unchanged; CARM escalates at the high-reach intake node and selects priority enforcement at the zero-reach leaf. External-runtime integration, complete decision receipts, stale/adversarial topology tests, and outcome-based evaluation remain.
 
 ## M6 - RIG evidence resolver and CARM-SE
 
