@@ -115,6 +115,8 @@ Status: Complete (2026-08-19)
 
 ## M4 - Governed Action Gateway and receipts
 
+Status: In progress (first in-memory product slice implemented 2026-08-19)
+
 ### Work
 
 - Complete amendment-diff and signed active-status verification in the trusted kernel.
@@ -133,6 +135,10 @@ Status: Complete (2026-08-19)
 - Ambiguous connector outcomes are not treated as failures or silently retried.
 - Receipts reconstruct every attempted governed commit.
 - The gateway can consume a decision from an existing deterministic policy runtime without weakening GCP invariants.
+
+### Current evidence
+
+The in-memory reference gateway now binds idempotency keys to proposals, orders kernel verification before policy and connector access, consumes normalized policy/CARM results, stops for approval, calls one protected supplier connector, signs product receipts, and reconciles a lost successful response without duplicating the supplier. Durable transactional storage, outbox delivery, full artifact wiring, and crash/restart recovery remain.
 
 ## M5 - CARM baseline and Governance Graph
 
