@@ -13,6 +13,11 @@ dependencies = [
   "referencing>=0.30",
 ]
 
+[project.optional-dependencies]
+acs = [
+  "agent-control-specification>=0.3.1b1; python_version >= '3.11'",
+]
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 
