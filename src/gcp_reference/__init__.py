@@ -1,7 +1,7 @@
 """Governance Capsule Protocol candidate reference library."""
 
 from .allocation import AllocationLedger
-from .action_kernel import CapsuleActionVerifier
+from .action_kernel import CapsuleActionVerifier, DelegatedCapsuleActionVerifier, DelegationTransition
 from .approval import (
     ApprovalRegistry,
     amendment_change_digest,
@@ -69,6 +69,8 @@ __all__ = [
     "CARMConfig",
     "CallablePolicyRuntime",
     "CapsuleActionVerifier",
+    "DelegatedCapsuleActionVerifier",
+    "DelegationTransition",
     "ConnectorOutcome",
     "ConnectorResult",
     "ErrorCode",
