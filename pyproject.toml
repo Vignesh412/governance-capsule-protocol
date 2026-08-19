@@ -6,7 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "gcp-reference"
 version = "0.1.0.dev0"
 description = "Reference implementation for the Governance Capsule Protocol candidate"
+license = {file = "LICENSE"}
 requires-python = ">=3.9"
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+]
 dependencies = [
   "cryptography>=41",
   "jsonschema>=4.18",
