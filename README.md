@@ -116,9 +116,14 @@ The core reference implementation requires Python 3.9 or newer.
 
 ```sh
 python3 -m pip install -e .
-python3 -m pytest
+python3 -m pytest -m "not frameworks_native and not acs_live"
 python3 tools/validate_schemas.py
 ```
+
+The marker-filtered test command is the reproducible core profile and does not
+require the optional agent-framework or Microsoft ACS packages. Running plain
+`python3 -m pytest` also discovers native integration gates; its pass/skip count
+therefore depends on which optional extras are installed.
 
 ### Open the interactive demo
 
@@ -167,8 +172,9 @@ The delegated-action demonstration should finish with `lineage_verified: true`, 
 
 Verified on 2026-08-19:
 
-- **105 tests passed** after adding native orchestration, commit-ambiguity recovery, and the separated GCP/CARM risk-escalation scenario.
-- **2 optional native integrations were skipped**: Microsoft ACS and the OpenAI Agents SDK package are not installed in this workspace. The installed Google ADK callback/agent constructor gate passed.
+- **Core profile:** `python3 -m pytest -m "not frameworks_native and not acs_live"` completed **104 tests**. The two framework-native tests were deselected; the unavailable ACS module is reported as one collection-time skip.
+- **Current workspace, plain test run:** `python3 -m pytest` completed **105 passed, 2 skipped**. Google ADK is installed, so its native constructor gate passed. Microsoft ACS and the OpenAI Agents SDK package are not installed, so those integration gates skipped.
+- **Optional frameworks profile:** install `.[frameworks,test]` on Python 3.11+ to enable both OpenAI Agents SDK and Google ADK construction gates. This profile is not reported as locally verified until both packages are present and the unfiltered suite is rerun.
 - **9 valid schema fixtures** were accepted.
 - **2 structurally invalid fixtures** were rejected.
 - **3 semantic-invalid manifests** were recognized: authority expansion, budget overallocation, and mandatory-obligation removal.
