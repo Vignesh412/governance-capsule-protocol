@@ -49,6 +49,7 @@ Action identifiers are bound to exact proposal digests. Reusing an identifier fo
 - Pending `COMMITTING` and `COMMIT_OUTCOME_UNKNOWN` actions can be recovered after restart.
 - Recovery reconciles by action ID before retrying the connector.
 - Fault-injection tests cover crashes immediately before and immediately after connector invocation.
+- Ordinary connector exceptions after invocation begins are treated as ambiguous outcomes and recovered through authoritative action-ID reconciliation.
 - In the demonstrated single-host profile, recovery completes the action without creating a duplicate supplier.
 
 This is a single-host durability result using an idempotent connector. It is not yet a distributed transaction guarantee.
@@ -72,7 +73,9 @@ The current implementation demonstrates graph-sensitive resolution behavior. It 
 - Cross-framework controls survive into the signed gateway receipt.
 - Tampering, replay, authority expansion, and cascading revocation stop before connector access.
 
-This is currently a deterministic SDK-contract proof. Native OpenAI Agents SDK and Google ADK execution is the next integration gate.
+The deterministic SDK-contract proof remains the always-available path. Two optional **Live Native Mode** scenarios are now implemented: a real OpenAI Agents SDK agent invokes a governed-delegation tool, GCP signs an application-owned transport, a real Google ADK agent requests the protected supplier tool, and the GCP callback verifies the transport before the gateway can call the sandboxed connector. One path commits exactly once; the other introduces cascading root revocation and must finish with zero connector calls. The browser receives progressive runtime events rather than presenting the native run as a precomputed animation.
+
+Live mode requires Python 3.11+, the `frameworks` extra, and provider credentials. It has not been executed in this workspace because API credentials are not configured and restricted network access prevented downloading the missing OpenAI package. Its SDK-independent orchestration and enforcement boundary are covered deterministically in tests; the UI labels live readiness explicitly.
 
 ## Demonstrated scenarios
 
@@ -86,6 +89,8 @@ This is currently a deterministic SDK-contract proof. Native OpenAI Agents SDK a
 | Revoked root capsule | The descendant action is rejected through cascading revocation. |
 | Crash before connector call | Recovery reconstructs the proposal and commits once. |
 | Crash after connector success | Recovery discovers the prior commit and does not call the connector again. |
+| Live OpenAI → Google ADK | Optional credentialed mode executes both native runtimes and streams every boundary to the UI. |
+| Live cascading revocation | Both native runtimes execute, but the revoked task is blocked with zero connector calls. |
 
 ## Run locally
 
@@ -109,6 +114,24 @@ python3 demo/server.py
 
 The command opens [http://127.0.0.1:8765](http://127.0.0.1:8765). The guided visual demo leads with the OpenAI-to-Google-ADK transport, followed by valid delegation, authority expansion, obligation removal, budget overallocation, proof tampering, cascading root revocation, and crash recovery without duplicate execution.
 
+### Enable Live Native Mode
+
+Install the isolated Python 3.11 profile:
+
+```sh
+uv sync --python 3.11 --extra frameworks --extra test
+```
+
+Set credentials in your terminal—never commit them:
+
+```sh
+export OPENAI_API_KEY="..."
+export GOOGLE_API_KEY="..."
+.venv/bin/python demo/server.py
+```
+
+For Google Vertex AI credentials, set `GOOGLE_GENAI_USE_VERTEXAI=true`, `GOOGLE_CLOUD_PROJECT`, and application-default credentials instead of `GOOGLE_API_KEY`. `GCP_GOOGLE_MODEL` may override the default `gemini-flash-latest` model. The UI exposes `/api/native/status`, selects live mode automatically only when it is ready, and otherwise keeps the deterministic demonstration fully usable.
+
 Run the product demonstrations:
 
 ```sh
@@ -126,12 +149,13 @@ The delegated-action demonstration should finish with `lineage_verified: true`, 
 
 Verified on 2026-08-19:
 
-- **100 tests passed**.
-- **2 optional native integration tests were skipped**: the external-policy runtime and cross-framework SDK construction gates require their optional Python 3.11 dependencies.
+- **104 tests passed** after adding the native orchestration, readiness, live revocation, and installed Google ADK constructor gates.
+- **2 optional native integrations were skipped**: Microsoft ACS and the OpenAI Agents SDK package are not installed in this workspace. The installed Google ADK callback/agent constructor gate passed.
 - **9 valid schema fixtures** were accepted.
 - **2 structurally invalid fixtures** were rejected.
 - **3 semantic-invalid manifests** were recognized: authority expansion, budget overallocation, and mandatory-obligation removal.
-- The signed delegated-action, cross-framework transport, durable recovery, and all eight interactive-demo scenarios completed successfully.
+- The signed delegated-action, cross-framework transport, durable recovery, and all eight deterministic interactive-demo scenarios completed successfully.
+- The optional ninth and tenth scenarios are credentialed live-native allow and revocation paths. Their no-LLM governance orchestration contracts pass locally; provider-backed execution still requires credentials and downloaded SDK dependencies.
 
 ## Trust boundary
 
@@ -174,4 +198,4 @@ This repository is experimental research code. The schemas, APIs, receipt format
 
 ## License
 
-No license has been selected yet. Until one is added, the repository contents remain all rights reserved by default.
+Licensed under the [Apache License 2.0](LICENSE). You may use, modify, and distribute the project, including commercially, subject to the license terms.
