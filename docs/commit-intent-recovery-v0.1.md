@@ -23,6 +23,27 @@ On restart, `recover_pending()` enumerates `COMMITTING` and `COMMIT_OUTCOME_UNKN
 - If it reports not committed for a `COMMITTING` intent, the gateway verifies the persisted proposal digest and invokes commit once using the same action ID.
 - If the outcome remains unknown, the gateway keeps the action unresolved rather than releasing or retrying blindly.
 
+## Connector exception contract
+
+Once `ProtectedConnector.commit()` begins, an exception is not evidence that
+the external action failed. A timeout, transport error, or adapter exception
+can occur after the side effect has already committed. The gateway therefore
+converts every ordinary exception raised by `commit()` into
+`COMMIT_OUTCOME_UNKNOWN`, preserving the record for reconciliation instead of
+marking it `FAILED`.
+
+A protected connector must:
+
+- use `action_id` as an idempotency key or stable external correlation key;
+- return an explicit outcome when it can determine one;
+- provide authoritative, side-effect-free lookup through `reconcile(action_id)`;
+- never report `NOT_COMMITTED` when the external outcome is still ambiguous; and
+- return the same stable result reference and digest for an already committed action.
+
+Exceptions before connector invocation remain gateway failures or governance
+rejections as appropriate. Process termination is deliberately not converted
+to `UNKNOWN`; the durable `COMMITTING` intent is reconciled after restart.
+
 ## Reproduce
 
 ```sh
@@ -40,7 +61,7 @@ Both durable records are `COMMITTING` at the simulated crash and `COMMITTED` aft
 
 ## Claim boundary
 
-This is a durable commit-intent pattern, not yet a full transactional outbox service. SQLite stores the intent and proposal on one host, and recovery is invoked explicitly. The connector must provide authoritative lookup by action ID and compatible idempotency semantics.
+This is a durable commit-intent pattern, not yet a full transactional outbox service. SQLite stores the intent and proposal on one host, and recovery is invoked explicitly. The gateway preserves commit-time exceptions as ambiguous outcomes, while the connector must provide authoritative lookup by action ID and compatible idempotency semantics.
 
 Still required:
 
