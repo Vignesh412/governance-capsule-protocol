@@ -1,4 +1,5 @@
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+import pytest
 
 from gcp_reference import (
     ActionProposal,
@@ -17,6 +18,7 @@ from gcp_reference import (
     PolicyEvaluation,
     PolicyLayer,
     SQLiteActionStore,
+    SimulatedProcessCrash,
     verify_artifact,
 )
 
@@ -40,7 +42,7 @@ def evaluation(policy_id, layer, effect, controls=()):
     return PolicyEvaluation(policy_id, "1", layer, effect, "TEST", "runtime", effect.value.lower(), controls)
 
 
-def gateway(runtime, *, approved=True, kernel=lambda proposal: (), connector=None, store=None, key=None):
+def gateway(runtime, *, approved=True, kernel=lambda proposal: (), connector=None, store=None, key=None, before_connector=None):
     key = key or Ed25519PrivateKey.generate()
     method = "https://gateway.example/keys/receipt"
     instance = GovernedActionGateway(
@@ -53,6 +55,7 @@ def gateway(runtime, *, approved=True, kernel=lambda proposal: (), connector=Non
         receipt_key=key,
         receipt_verification_method=method,
         action_store=store,
+        before_connector=before_connector,
     )
     return instance, key, method
 
@@ -189,4 +192,59 @@ def test_sqlite_persists_action_id_binding_across_restart(tmp_path):
         assert False
     except GCPError as error:
         assert error.code == ErrorCode.ACTION_ID_CONFLICT
+    second_store.close()
+
+
+def test_restart_recovers_crash_before_connector_call(tmp_path):
+    database = tmp_path / "gateway.sqlite3"
+    runtime = policies(evaluation("allow", PolicyLayer.TASK, PolicyEffect.ALLOW))
+    connector = InMemorySupplierConnector()
+    key = Ed25519PrivateKey.generate()
+
+    def crash_before_connector(proposal):
+        raise SimulatedProcessCrash("before connector")
+
+    first_store = SQLiteActionStore(database)
+    first, _, _ = gateway(
+        runtime, connector=connector, store=first_store, key=key,
+        before_connector=crash_before_connector,
+    )
+    with pytest.raises(SimulatedProcessCrash):
+        first.execute(action(), conflict_node="commit")
+    assert first.get(action().action_id).state == ActionState.COMMITTING
+    assert connector.commit_calls == 0
+    first_store.close()
+
+    second_store = SQLiteActionStore(database)
+    restarted, _, _ = gateway(runtime, connector=connector, store=second_store, key=key)
+    recovered = restarted.recover_pending()
+    assert len(recovered) == 1
+    assert recovered[0].state == ActionState.COMMITTED
+    assert connector.commit_calls == 1
+    assert len(connector.suppliers) == 1
+    second_store.close()
+
+
+def test_restart_recovers_crash_after_connector_commit(tmp_path):
+    database = tmp_path / "gateway.sqlite3"
+    runtime = policies(evaluation("allow", PolicyLayer.TASK, PolicyEffect.ALLOW))
+    connector = InMemorySupplierConnector()
+    connector.crash_after_next_commit = True
+    key = Ed25519PrivateKey.generate()
+
+    first_store = SQLiteActionStore(database)
+    first, _, _ = gateway(runtime, connector=connector, store=first_store, key=key)
+    with pytest.raises(SimulatedProcessCrash):
+        first.execute(action(), conflict_node="commit")
+    assert first.get(action().action_id).state == ActionState.COMMITTING
+    assert connector.commit_calls == 1
+    assert len(connector.suppliers) == 1
+    first_store.close()
+
+    second_store = SQLiteActionStore(database)
+    restarted, _, _ = gateway(runtime, connector=connector, store=second_store, key=key)
+    recovered = restarted.recover_pending()
+    assert recovered[0].state == ActionState.COMMITTED
+    assert connector.commit_calls == 1
+    assert len(connector.suppliers) == 1
     second_store.close()
