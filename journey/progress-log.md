@@ -382,6 +382,39 @@ The reviewed ACS Python SDK `0.3.1b1` requires Python 3.11+. This workspace runs
 
 Run a pinned native ACS manifest through `HostSession`, exercise all five verdicts, and bind the resulting policy evidence into a complete CARM decision receipt.
 
+## 2026-08-19 - First Governed Action Gateway product slice
+
+### Completed
+
+- Implemented the in-memory governed-action state machine through validation, approval, reservation, commit, unknown outcome, reconciliation, rejection, and failure.
+- Bound every action ID to one exact proposal digest and made identical retries return the recorded result.
+- Placed an idempotent supplier connector exclusively behind the gateway interface.
+- Ordered kernel verification before policy evaluation and connector access.
+- Integrated normalized external-policy controls and CARM decisions.
+- Signed experimental product receipts binding proposal, graph, policy, controls, decision, and result snapshots.
+- Simulated supplier creation followed by a lost response and reconciled it without a second commit.
+
+### Test result
+
+`python3 -m pytest`: 77 passed, 1 native-ACS test skipped on local Python 3.9.
+
+The schema suite remains green.
+
+### Product result
+
+The repository now contains an executable product-shaped path, not only schemas and isolated validators. One command demonstrates proposal-to-commit governance and ambiguous-outcome recovery.
+
+### Limitations
+
+State and transaction boundaries remain process-local. Full capsule, revocation, and scoped-approval artifacts are still injected through interfaces. The supplier connector is a reference implementation. The signed receipt is experimental and has not yet been reconciled with the frozen wire schema.
+
+### New evidence
+
+- `src/gcp_reference/gateway.py`
+- `tests/test_gateway.py`
+- `tools/run_gateway_demo.py`
+- `docs/gateway-slice-v0.1.md`
+
 ### Next work
 
 Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
