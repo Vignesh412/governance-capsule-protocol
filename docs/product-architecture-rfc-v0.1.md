@@ -351,6 +351,7 @@ PROPOSED
 - Approval uses and budgets are reserved atomically with transition to `RESERVED`.
 - Reservations are not automatically released after an ambiguous connector timeout.
 - `COMMIT_OUTCOME_UNKNOWN` requires connector reconciliation before retry or release.
+- Any ordinary exception after connector `commit()` begins is treated as `COMMIT_OUTCOME_UNKNOWN`, never as proof of non-commit or terminal failure.
 - Revocation prevents new authorization and suspends non-committed actions at their next enforceable boundary.
 - Already committed irreversible effects are not rewritten; they may require compensation.
 - Every terminal and waiting state has a signed lifecycle receipt.
