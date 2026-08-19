@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from threading import RLock
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple
 
 from .crypto import KeyResolver, artifact_digest, verify_artifact
@@ -11,10 +12,18 @@ from .replay import UseRegistry
 from .revocation import RevocationEvaluator, StatusProvider
 from .schema import validate_structure
 from .semantics import validate_audience
+from .semantics import validate_delegation, validate_delegation_proof
 
 
 ConstraintVerifier = Callable[[Mapping[str, Any], ActionProposal], bool]
 ObligationVerifier = Callable[[Mapping[str, Any], ActionProposal], bool]
+
+
+@dataclass(frozen=True)
+class DelegationTransition:
+    parent: Mapping[str, Any]
+    child: Mapping[str, Any]
+    proof: Mapping[str, Any]
 
 
 def _time(value: str) -> datetime:
@@ -147,3 +156,95 @@ class CapsuleActionVerifier:
                 return False
             return True
         return bool(verifier(constraint, proposal))
+
+
+class DelegatedCapsuleActionVerifier:
+    """Verify an entire ordinary delegation chain before authorizing its leaf."""
+
+    def __init__(
+        self,
+        transitions: Sequence[DelegationTransition],
+        *,
+        presenter: str,
+        now: Callable[[], datetime],
+        resolver: KeyResolver,
+        authorized_issuers: Mapping[str, Sequence[str]],
+        authorized_delegators: Mapping[str, Sequence[str]],
+        revocation_evaluator: Optional[RevocationEvaluator] = None,
+        status_provider: Optional[StatusProvider] = None,
+        allow_offline: bool = False,
+        constraint_verifiers: Optional[Mapping[str, ConstraintVerifier]] = None,
+        obligation_verifier: Optional[ObligationVerifier] = None,
+        use_registry: Optional[UseRegistry] = None,
+    ) -> None:
+        if not transitions:
+            raise GCPError(ErrorCode.PARENT_MISMATCH, "Delegated action requires a lineage transition")
+        self._transitions = tuple(transitions)
+        self._resolver = resolver
+        self._authorized_issuers = authorized_issuers
+        self._authorized_delegators = authorized_delegators
+        self._validate_chain_shape()
+        ancestors = [self._transitions[0].parent]
+        ancestors.extend(item.child for item in self._transitions[:-1])
+        self._leaf = CapsuleActionVerifier(
+            self._transitions[-1].child,
+            presenter=presenter,
+            now=now,
+            resolver=resolver,
+            authorized_issuers=authorized_issuers,
+            ancestors=ancestors,
+            revocation_evaluator=revocation_evaluator,
+            status_provider=status_provider,
+            allow_offline=allow_offline,
+            constraint_verifiers=constraint_verifiers,
+            obligation_verifier=obligation_verifier,
+            use_registry=use_registry,
+        )
+
+    def __call__(self, proposal: ActionProposal) -> Tuple[str, ...]:
+        ancestor_ids = []
+        for transition in self._transitions:
+            self._verify_capsule(transition.parent)
+            self._verify_capsule(transition.child)
+            validate_delegation(
+                transition.parent,
+                transition.child,
+                verified_ancestor_ids=ancestor_ids,
+            )
+            validate_structure(transition.proof, "delegation-proof.schema.json")
+            validate_delegation_proof(
+                transition.proof,
+                transition.parent,
+                transition.child,
+                self._resolver,
+            )
+            delegator = transition.proof["delegator"]
+            method = transition.proof["proof"]["verification_method"]
+            if method not in self._authorized_delegators.get(delegator, ()):
+                raise GCPError(
+                    ErrorCode.INVALID_DELEGATION_PROOF,
+                    "Delegator is not authorized to use this verification method",
+                    {"delegator": delegator, "verification_method": method},
+                )
+            ancestor_ids.append(transition.parent["capsule_id"])
+        return tuple(self._leaf(proposal)) + ("GCP_DELEGATION_LINEAGE_VERIFIED",)
+
+    def _validate_chain_shape(self) -> None:
+        for previous, current in zip(self._transitions, self._transitions[1:]):
+            if artifact_digest(previous.child) != artifact_digest(current.parent):
+                raise GCPError(
+                    ErrorCode.PARENT_MISMATCH,
+                    "Delegation transitions do not form one continuous chain",
+                )
+
+    def _verify_capsule(self, capsule: Mapping[str, Any]) -> None:
+        validate_structure(capsule, "capsule.schema.json")
+        verify_artifact(capsule, self._resolver)
+        issuer = capsule["issuer"]
+        method = capsule["proof"]["verification_method"]
+        if method not in self._authorized_issuers.get(issuer, ()):
+            raise GCPError(
+                ErrorCode.UNAUTHORIZED_CAPSULE_ISSUER,
+                "Capsule issuer is not authorized to use this verification method",
+                {"issuer": issuer, "verification_method": method},
+            )
