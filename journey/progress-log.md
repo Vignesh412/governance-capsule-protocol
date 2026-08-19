@@ -444,6 +444,34 @@ This proves restart-safe action-ledger behavior on one host. It does not yet pro
 - `tools/run_durable_gateway_demo.py`
 - `docs/durable-gateway-slice-v0.1.md`
 
+## 2026-08-19 - Durable commit-intent recovery
+
+### Completed
+
+- Persisted the recoverable action proposal alongside every commit intent.
+- Added pending-intent enumeration for `COMMITTING` and `COMMIT_OUTCOME_UNKNOWN`.
+- Added digest verification before reconstructing a proposal for recovery.
+- Added a restart worker that reconciles committed intents and commits only confirmed-not-committed intents.
+- Fault-injected a process stop immediately before connector invocation.
+- Fault-injected a process stop immediately after connector success but before gateway result persistence.
+
+### Test result
+
+`python3 -m pytest`: 81 passed, 1 native-ACS test skipped locally.
+
+### Demonstrated result
+
+The before-call crash produced zero connector calls before restart and exactly one after recovery. The after-success crash produced one connector call before restart and still one after recovery. Both scenarios ended with one committed supplier.
+
+### Limitation
+
+This is an explicitly invoked single-host recovery worker, not yet a leased asynchronous outbox service. Correctness still depends on authoritative connector reconciliation and action-ID idempotency.
+
+### New evidence
+
+- `tools/run_outbox_recovery_demo.py`
+- `docs/commit-intent-recovery-v0.1.md`
+
 ### Next work
 
 Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
