@@ -3,19 +3,43 @@ from demo.scenarios import run_scenario, scenario_catalog
 
 def test_every_visual_demo_scenario_reaches_its_documented_outcome():
     catalog = scenario_catalog()
+    deterministic = [item for item in catalog if item.get("execution_mode") != "live-native"]
     for item in catalog:
         assert item["use_case"]
         assert item["task"]
         assert item["governance"]
         assert item["change"]
         assert item["why_it_matters"]
-    results = {item["id"]: run_scenario(item["id"]) for item in catalog}
+    results = {item["id"]: run_scenario(item["id"]) for item in deterministic}
 
     cross_framework = results["cross-framework"]
     assert cross_framework["state"] == "COMMITTED"
     assert cross_framework["connector_calls"] == 1
     assert "GCP_SOURCE_OPENAI_HANDOFF_VERIFIED" in cross_framework["controls"]
     assert "GCP_DESTINATION_GOOGLE_ADK_BOUNDARY_VERIFIED" in cross_framework["controls"]
+
+    authorized_risk = results["authorized-risk"]
+    assert authorized_risk["state"] == "APPROVAL_REQUIRED"
+    assert authorized_risk["decision"] == "APPROVAL_REQUIRED"
+    assert authorized_risk["reason_codes"] == ["CARM_AUTOMATED_BLOCK_REROUTED"]
+    assert authorized_risk["connector_calls"] == 0
+    assert authorized_risk["suppliers_created"] == 0
+    assert authorized_risk["layer_outcomes"] == {
+        "gcp": {
+            "status": "VERIFIED",
+            "detail": "Authentic delegation; authority narrowed; obligations and budget preserved.",
+        },
+        "carm": {
+            "status": "RISK_DETECTED",
+            "detail": "Unresolved screening evidence requires human review.",
+        },
+        "action": {
+            "status": "PAUSED",
+            "detail": "Zero connector calls pending approval.",
+        },
+    }
+    assert "GCP_DELEGATION_LINEAGE_VERIFIED" in authorized_risk["controls"]
+    assert "HUMAN_COMPLIANCE_REVIEW" in authorized_risk["controls"]
 
     allowed = results["valid-delegation"]
     assert allowed["state"] == "COMMITTED"
