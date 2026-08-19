@@ -142,6 +142,8 @@ The in-memory reference gateway now binds idempotency keys to proposals, orders 
 
 The action ledger now also has a transactional SQLite profile. A second gateway instance can recover an ambiguous outcome after restart, reconcile it, and reject action-ID rebinding without repeating connector commit. Durable outbox intent, transition revisions, atomic approval/budget reservation, and PostgreSQL multi-instance semantics remain.
 
+The SQLite profile now persists a recoverable proposal with every `COMMITTING` intent and enumerates pending work after restart. Fault-injection tests cover process stops immediately before and after connector invocation. A leased asynchronous outbox worker, revision-checked transitions, and PostgreSQL multi-instance execution remain.
+
 ## M5 - CARM baseline and Governance Graph
 
 Status: In progress (started 2026-08-19)
