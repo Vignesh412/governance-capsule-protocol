@@ -46,6 +46,15 @@ class ConnectorResult:
 
 
 class ProtectedConnector(Protocol):
+    """Side-effect boundary with action-ID reconciliation.
+
+    ``commit`` should return the most precise outcome it can. Any ordinary
+    exception after invocation begins is conservatively treated by the gateway
+    as an unknown outcome, because the external side effect may have happened.
+    Implementations must therefore make ``reconcile`` authoritative for an
+    action ID and use that ID as an idempotency or correlation key.
+    """
+
     def commit(self, action_id: str, proposal: ActionProposal) -> ConnectorResult: ...
     def reconcile(self, action_id: str) -> ConnectorResult: ...
 
@@ -246,7 +255,7 @@ class GovernedActionGateway:
                 self._store.put(replace(record, state=ActionState.COMMITTING))
                 if self._before_connector is not None:
                     self._before_connector(proposal)
-                result = self._connector.commit(proposal.action_id, proposal)
+                result = self._commit_safely(proposal.action_id, proposal)
                 return self._apply_connector_result(record, result)
             except GCPError as error:
                 return self._finish(
@@ -290,7 +299,7 @@ class GovernedActionGateway:
             result = self._connector.reconcile(action_id)
             if result.outcome == ConnectorOutcome.NOT_COMMITTED and record.state == ActionState.COMMITTING:
                 proposal = self._proposal_from_record(record)
-                result = self._connector.commit(action_id, proposal)
+                result = self._commit_safely(action_id, proposal)
             return self._apply_connector_result(record, result)
 
     def recover_pending(self) -> Tuple[ActionRecord, ...]:
@@ -300,6 +309,16 @@ class GovernedActionGateway:
         for record in self._store.pending_commits():
             recovered.append(self.reconcile(record.action_id))
         return tuple(recovered)
+
+    def _commit_safely(self, action_id: str, proposal: ActionProposal) -> ConnectorResult:
+        """Preserve ambiguity when a connector may have produced a side effect."""
+
+        try:
+            return self._connector.commit(action_id, proposal)
+        except Exception:
+            # A timeout or adapter exception is not evidence that commit failed:
+            # the external write may have succeeded before the response was lost.
+            return ConnectorResult(ConnectorOutcome.UNKNOWN)
 
     @staticmethod
     def _proposal_from_record(record: ActionRecord) -> ActionProposal:
