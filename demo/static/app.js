@@ -8,10 +8,12 @@ const state = {
 const $ = (id) => document.getElementById(id);
 const list = $("scenarioList");
 const runButton = $("runButton");
+const DEMO_VERSION = "0.3-contract-risk";
 const TOUR_TIMING = {
   scenarioIntroduction: 5000,
   firstStep: 4300,
   nextStep: 4100,
+  nativeStageMinimum: 3200,
 };
 
 function escapeHtml(value) {
@@ -26,18 +28,32 @@ async function loadScenarios() {
   try {
     const response = await fetch("/api/scenarios");
     if (!response.ok) throw new Error("Could not load scenarios");
-    state.scenarios = (await response.json()).scenarios;
+    const payload = await response.json();
+    if (payload.demo_version !== DEMO_VERSION) {
+      throw new Error("STALE_DEMO_SERVER");
+    }
+    state.scenarios = payload.scenarios;
     $("proofCount").textContent = state.scenarios.length;
-    selectScenario(state.scenarios[0].id, true);
+    const live = state.scenarios.find((item) => item.execution_mode === "live-native");
+    const initial = live?.readiness?.ready
+      ? live
+      : state.scenarios.find((item) => item.id === "cross-framework") || state.scenarios[0];
+    selectScenario(initial.id, true);
   } catch (error) {
     const openedDirectly = window.location.protocol === "file:";
-    list.innerHTML = openedDirectly
+    const staleServer = error.message === "STALE_DEMO_SERVER";
+    list.innerHTML = staleServer
+      ? '<p class="error">The demo code changed. Stop the running Terminal server with Control-C, then launch <code>python3 demo/server.py</code> again.</p>'
+      : openedDirectly
       ? '<p class="error">Start <code>python3 demo/server.py</code>, then open <code>http://127.0.0.1:8765</code>.</p>'
       : '<p class="error">The Python demo server is not connected.</p>';
-    $("scenarioTitle").textContent = openedDirectly ? "Open through the demo server" : "Kernel unavailable";
-    $("scenarioDescription").textContent = openedDirectly
+    $("scenarioTitle").textContent = staleServer ? "Restart required" : openedDirectly ? "Open through the demo server" : "Kernel unavailable";
+    $("scenarioDescription").textContent = staleServer
+      ? "The browser has the new Live Native interface, but the running Python process still has the earlier scenario catalog loaded."
+      : openedDirectly
       ? "This page was opened as a file, so it cannot call the Python governance kernel."
       : "The browser could not reach the local reference kernel.";
+    $("kernelStatus").lastChild.textContent = staleServer ? " Restart the demo server" : " Reference kernel unavailable";
   }
 }
 
@@ -47,7 +63,9 @@ function renderScenarios() {
             type="button" data-scenario="${escapeHtml(scenario.id)}">
       <span class="indicator"></span>
       <b>${escapeHtml(scenario.name)}</b>
-      <small class="${escapeHtml(scenario.tone)}">EXPECTED · ${escapeHtml(scenario.expected)}</small>
+      <small class="${escapeHtml(scenario.tone)}">${scenario.execution_mode === "live-native"
+        ? `LIVE · ${scenario.readiness?.ready ? "READY" : "SETUP REQUIRED"}`
+        : `EXPECTED · ${escapeHtml(scenario.expected)}`}</small>
     </button>
   `).join("");
   list.querySelectorAll("[data-scenario]").forEach((button) => {
@@ -75,7 +93,27 @@ function selectScenario(id, execute = false) {
   $("emptyState").hidden = false;
   $("results").hidden = true;
   runButton.disabled = false;
+  if (state.selected.execution_mode === "live-native" && !state.selected.readiness?.ready) {
+    showNativeSetup(state.selected.readiness);
+    return;
+  }
   if (execute) runScenario();
+}
+
+function showNativeSetup(readiness) {
+  const missing = readiness?.missing || ["native runtime configuration"];
+  $("emptyState").hidden = false;
+  $("results").hidden = true;
+  $("emptyState").innerHTML = `
+    <div class="native-setup">
+      <small>LIVE NATIVE MODE · SETUP REQUIRED</small>
+      <strong>The executable native path is built, but this server is missing:</strong>
+      <p>${missing.map(escapeHtml).join(" · ")}</p>
+      <code>${escapeHtml(readiness?.setup_command || "uv sync --python 3.11 --extra frameworks --extra test")}</code>
+      <span>Then set OPENAI_API_KEY and GOOGLE_API_KEY, and restart with <b>.venv/bin/python demo/server.py</b>.</span>
+    </div>`;
+  runButton.disabled = true;
+  runButton.querySelector("span").textContent = "Configure live mode";
 }
 
 function reasonText(result) {
@@ -89,10 +127,31 @@ function reasonText(result) {
   if (result.scenario_id === "crash-recovery") {
     return "Restart reconciliation found the prior commit and prevented duplicate execution.";
   }
+  if (result.state === "APPROVAL_REQUIRED") {
+    return "The GCP contract is valid, but CARM detected a runtime policy conflict that requires human review.";
+  }
   if (result.state === "COMMITTED") {
     return "Signatures, lineage, authority, obligations, budget, and revocation checks passed.";
   }
   return labels[result.reason_codes[0]] || result.reason_codes[0] || "The governance kernel rejected this action.";
+}
+
+function renderLayerOutcomes(result) {
+  const holder = $("layerOutcomes");
+  if (!result.layer_outcomes) {
+    holder.hidden = true;
+    holder.innerHTML = "";
+    return;
+  }
+  const labels = {gcp: "GCP CONTRACT", carm: "CARM RUNTIME", action: "ACTION BOUNDARY"};
+  holder.innerHTML = Object.entries(result.layer_outcomes).map(([key, value]) => `
+    <div class="layer-outcome ${value.status === "RISK_DETECTED" || value.status === "PAUSED" ? "warn" : ""}">
+      <small>${escapeHtml(labels[key] || key)}</small>
+      <strong>${escapeHtml(value.status)}</strong>
+      <span>${escapeHtml(value.detail)}</span>
+    </div>
+  `).join("");
+  holder.hidden = false;
 }
 
 function renderTimeline(items) {
@@ -140,18 +199,21 @@ function renderLineage(result) {
 
 function renderResult(result) {
   const strip = document.querySelector(".decision-strip");
-  strip.classList.remove("blocked", "recovered");
+  strip.classList.remove("blocked", "recovered", "approval");
   const recovered = result.scenario_id === "crash-recovery";
+  const approval = result.state === "APPROVAL_REQUIRED";
   const allowed = result.state === "COMMITTED" && !recovered;
   if (recovered) strip.classList.add("recovered");
+  else if (approval) strip.classList.add("approval");
   else if (!allowed) strip.classList.add("blocked");
 
-  $("decisionSymbol").textContent = allowed ? "✓" : recovered ? "↻" : "×";
-  $("decisionTitle").textContent = allowed ? "Action allowed" : recovered ? "Action recovered" : "Action blocked";
+  $("decisionSymbol").textContent = allowed ? "✓" : recovered ? "↻" : approval ? "!" : "×";
+  $("decisionTitle").textContent = allowed ? "Action allowed" : recovered ? "Action recovered" : approval ? "Human approval required" : "Action blocked";
   $("decisionReason").textContent = reasonText(result);
   $("connectorCalls").textContent = result.connector_calls;
   $("supplierCount").textContent = result.suppliers_created;
-  $("traceStatus").textContent = allowed ? "VERIFIED" : recovered ? "RECOVERED" : "REJECTED";
+  $("traceStatus").textContent = allowed ? "VERIFIED" : recovered ? "RECOVERED" : approval ? "ESCALATED" : "REJECTED";
+  renderLayerOutcomes(result);
   renderTimeline(result.timeline);
   renderLineage(result);
   $("receiptContent").textContent = JSON.stringify(result.receipt, null, 2);
@@ -235,6 +297,10 @@ async function runScenario() {
   runButton.classList.add("running");
   runButton.querySelector("span").textContent = "Verifying…";
   try {
+    if (state.selected.execution_mode === "live-native") {
+      await runNativeScenario(executionId);
+      return;
+    }
     const response = await fetch("/api/run", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
@@ -254,6 +320,79 @@ async function runScenario() {
     runButton.disabled = false;
     runButton.classList.remove("running");
     runButton.querySelector("span").textContent = "Run again";
+  }
+}
+
+function renderNativeStage(event, index) {
+  const labels = ["OPENAI", "GCP", "GOOGLE ADK", "GATEWAY"];
+  const stageMap = {
+    "openai-start": 0,
+    "openai-done": 0,
+    "gcp-sign": 1,
+    "adk-verify": 2,
+    "adk-start": 2,
+    "gateway": 3,
+  };
+  const active = stageMap[event.stage] ?? Math.min(index, 3);
+  $("handoff").classList.add("is-running");
+  $("handoff").dataset.phase = String(active === 0 ? 0 : active === 1 ? 1 : active === 2 ? 2 : 3);
+  $("emptyState").hidden = false;
+  $("results").hidden = true;
+  $("emptyState").innerHTML = `
+    <div class="flow-step ${escapeHtml(event.status || "running")}">
+      <small>LIVE RUNTIME EVENT · ${escapeHtml(labels[active])}</small>
+      <strong>${escapeHtml(event.title)}</strong>
+      <p>${escapeHtml(event.detail)}</p>
+      <div class="flow-dots">${labels.map((_, dot) =>
+        `<i class="${dot < active ? "done" : dot === active ? "active" : ""}"></i>`
+      ).join("")}</div>
+    </div>`;
+}
+
+async function runNativeScenario(executionId) {
+  $("storyCard").scrollIntoView({behavior: "smooth", block: "center"});
+  await pause(TOUR_TIMING.scenarioIntroduction);
+  if (executionId !== state.executionId) return;
+  $("handoff").scrollIntoView({behavior: "smooth", block: "center"});
+
+  const response = await fetch("/api/native/run", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({scenario_id: state.selected.id}),
+  });
+  if (!response.ok || !response.body) throw new Error("Could not start the native runtime stream");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let stageIndex = 0;
+  while (true) {
+    const chunk = await reader.read();
+    buffer += decoder.decode(chunk.value || new Uint8Array(), {stream: !chunk.done});
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const event = JSON.parse(line);
+      if (event.type === "error") {
+        if (event.readiness) state.selected.readiness = event.readiness;
+        throw new Error(event.error);
+      }
+      if (event.type === "stage") {
+        renderNativeStage(event, stageIndex++);
+        await pause(TOUR_TIMING.nativeStageMinimum);
+      }
+      if (event.type === "result") {
+        state.result = event.result;
+        $("handoff").classList.remove("is-running");
+        delete $("handoff").dataset.phase;
+        renderResult(event.result);
+      }
+    }
+    if (chunk.done) break;
+    if (executionId !== state.executionId) {
+      await reader.cancel();
+      return;
+    }
   }
 }
 
