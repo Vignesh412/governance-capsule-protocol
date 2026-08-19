@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Iterable, Mapping, Protocol, Tuple
+from typing import Any, Callable, Iterable, Mapping, Optional, Protocol, Tuple
 
 from .errors import ErrorCode, GCPError
 
@@ -24,6 +24,7 @@ class PolicyLayer(str, Enum):
 class PolicyEffect(str, Enum):
     ALLOW = "ALLOW"
     BLOCK = "BLOCK"
+    REQUIRE_APPROVAL = "REQUIRE_APPROVAL"
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,10 @@ class PolicyEvaluation:
     layer: PolicyLayer
     effect: PolicyEffect
     rationale_code: str
+    runtime_id: Optional[str] = None
+    native_verdict: Optional[str] = None
+    required_controls: Tuple[str, ...] = ()
+    evidence_artifact: Optional[str] = None
 
 
 class PolicyRuntime(Protocol):
