@@ -38,6 +38,8 @@ Milestone 3 is in progress. The reference library now implements deterministic c
 
 The first Milestone 5 comparative slice is also executable. It implements a validated, digest-bound Governance Graph, explicit AND/OR/UNKNOWN joins, join-aware downstream reach, topology confidence, normalized policy-runtime inputs, deterministic CARM PE/NR/EB selection, and most-restrictive and fixed-priority baselines. In the supplier workflow, the same policy conflict escalates at the high-reach intake node and uses priority enforcement at the zero-reach commit node. This proves graph-sensitive behavior only—not decision correctness or competitive superiority.
 
+A Microsoft ACS adapter now maps the five published ACS verdicts into normalized GCP policy evidence without losing warning, transform, escalation, or evidence semantics. It is source-contract tested; native ACS execution remains pending because the reviewed ACS Python SDK requires Python 3.11+ and the current workspace runs Python 3.9.6.
+
 The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
 
 A 2026-08-19 competitive refresh identified Microsoft Agent Governance Toolkit as the closest implementation baseline and changed the build strategy: reuse existing policy, identity, approval, receipt, escalation, and adapter primitives where possible; build and test the distinct graph/evidence/recovery layer comparatively.
