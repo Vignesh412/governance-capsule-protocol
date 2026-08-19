@@ -501,6 +501,31 @@ Compose derived-capsule lineage and delegation proofs into the action boundary, 
 - `tools/run_signed_capsule_gateway_demo.py`
 - `docs/signed-capsule-gateway-v0.1.md`
 
+## 2026-08-19 - Signed delegated-work gateway
+
+### Completed
+
+- Composed ordinary derived-capsule lineage into the live action boundary.
+- Verified each capsule schema, signature, and issuer/key role.
+- Verified continuous parent-child digest linkage and existing attenuation invariants.
+- Verified delegation-proof content, signature, and delegator/key role.
+- Evaluated leaf and cascading ancestor revocation before local policy.
+- Added a signed one-hop intake-to-supplier-operations demonstration.
+
+### Test result
+
+`python3 -m pytest`: 92 passed, 1 native-ACS test skipped locally.
+
+### Adversarial result
+
+Child authority expansion, delegation-proof tampering, and cascading root revocation all reject before policy evaluation and supplier connector access.
+
+### New evidence
+
+- `tests/test_delegated_gateway.py`
+- `tools/run_delegated_gateway_demo.py`
+- `docs/delegated-gateway-v0.1.md`
+
 ### Next work
 
 Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
