@@ -58,14 +58,15 @@ Defines the current governance contract for a task: identity, provenance, author
 
 Defines discovery, offer, validation, acceptance, constrained acceptance, approval, rejection, delegation, receipt, completion, cancellation, and revocation behavior.
 
-### CARM reference enforcement runtime
+### Governed Action Gateway
 
-Validates capsules, reconciles inherited governance with local policy and capabilities, analyzes cascade impact, and returns one of:
+Acts as the trusted reference monitor before consequential side effects. It validates GCP artifacts, reserves state atomically, invokes protected connectors with gateway-held credentials, reconciles ambiguous outcomes, and issues signed receipts.
 
-- `ALLOW`
-- `ALLOW_WITH_CONTROLS`
-- `APPROVAL_REQUIRED`
-- `BLOCK`
+### CARM conflict-resolution runtime
+
+CARM means **Cascade-Aware Resolution Mechanism**. It handles conflicts among otherwise valid policies using severity, downstream reach, topology confidence, and evidence. CARM-SE may selectively automate escalation candidates only within an active certification envelope. RIG-aware evidence handling requests missing decision-relevant facts or abstains when the correct resolution cannot be identified.
+
+Protocol-invalid authority, signatures, budgets, approvals, revocation status, or mandatory obligations are rejected before CARM and cannot be negotiated.
 
 ## Foundational invariants
 
