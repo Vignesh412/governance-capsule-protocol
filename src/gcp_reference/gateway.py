@@ -70,6 +70,43 @@ class ActionRecord:
     receipt: Optional[Mapping[str, Any]] = None
 
 
+class ActionStore(Protocol):
+    """Durable state boundary used by the gateway."""
+
+    def claim(self, record: ActionRecord) -> Optional[ActionRecord]: ...
+    def get(self, action_id: str) -> Optional[ActionRecord]: ...
+    def put(self, record: ActionRecord) -> None: ...
+    def delete_waiting(self, action_id: str, expected: ActionState) -> None: ...
+
+
+class InMemoryActionStore:
+    def __init__(self) -> None:
+        self._records: Dict[str, ActionRecord] = {}
+        self._lock = RLock()
+
+    def claim(self, record: ActionRecord) -> Optional[ActionRecord]:
+        with self._lock:
+            existing = self._records.get(record.action_id)
+            if existing is None:
+                self._records[record.action_id] = record
+            return existing
+
+    def get(self, action_id: str) -> Optional[ActionRecord]:
+        with self._lock:
+            return self._records.get(action_id)
+
+    def put(self, record: ActionRecord) -> None:
+        with self._lock:
+            self._records[record.action_id] = record
+
+    def delete_waiting(self, action_id: str, expected: ActionState) -> None:
+        with self._lock:
+            current = self._records.get(action_id)
+            if current is None or current.state != expected:
+                raise GCPError(ErrorCode.ACTION_STATE_INVALID, "Action state changed before resume")
+            del self._records[action_id]
+
+
 def _proposal_document(proposal: ActionProposal) -> Mapping[str, Any]:
     return {
         "action_id": proposal.action_id,
@@ -113,6 +150,7 @@ class GovernedActionGateway:
         approval_verifier: ApprovalVerifier,
         receipt_key: Ed25519PrivateKey,
         receipt_verification_method: str,
+        action_store: Optional[ActionStore] = None,
     ) -> None:
         self.gateway_id = gateway_id
         self._policy_runtime = policy_runtime
@@ -122,17 +160,18 @@ class GovernedActionGateway:
         self._approval_verifier = approval_verifier
         self._receipt_key = receipt_key
         self._receipt_method = receipt_verification_method
-        self._records: Dict[str, ActionRecord] = {}
+        self._store = action_store or InMemoryActionStore()
         self._lock = RLock()
 
     def get(self, action_id: str) -> Optional[ActionRecord]:
         with self._lock:
-            return self._records.get(action_id)
+            return self._store.get(action_id)
 
     def execute(self, proposal: ActionProposal, *, conflict_node: str) -> ActionRecord:
         proposal_digest = artifact_digest(_proposal_document(proposal))
         with self._lock:
-            existing = self._records.get(proposal.action_id)
+            initial = ActionRecord(proposal.action_id, proposal_digest, ActionState.VALIDATING, 1)
+            existing = self._store.claim(initial)
             if existing is not None:
                 if existing.proposal_digest != proposal_digest:
                     raise GCPError(
@@ -141,8 +180,7 @@ class GovernedActionGateway:
                         {"action_id": proposal.action_id},
                     )
                 return existing
-            record = ActionRecord(proposal.action_id, proposal_digest, ActionState.VALIDATING, 1)
-            self._records[proposal.action_id] = record
+            record = initial
 
             try:
                 kernel_controls = tuple(self._kernel_verifier(proposal))
@@ -188,7 +226,7 @@ class GovernedActionGateway:
                     graph_digest=resolution.reach.graph_digest,
                     policy_snapshot_digest=policy_digest,
                 )
-                self._records[proposal.action_id] = replace(record, state=ActionState.COMMITTING)
+                self._store.put(replace(record, state=ActionState.COMMITTING))
                 result = self._connector.commit(proposal.action_id, proposal)
                 return self._apply_connector_result(record, result)
             except GCPError as error:
@@ -212,19 +250,19 @@ class GovernedActionGateway:
 
     def resume_approved(self, proposal: ActionProposal, *, conflict_node: str) -> ActionRecord:
         with self._lock:
-            current = self._records.get(proposal.action_id)
+            current = self._store.get(proposal.action_id)
             if current is None or current.state != ActionState.APPROVAL_REQUIRED:
                 raise GCPError(ErrorCode.ACTION_STATE_INVALID, "Action is not awaiting approval")
             if not self._approval_verifier(proposal):
                 return current
             # Remove only the waiting record; the immutable proposal binding is
             # checked before re-entry and the approval verifier must be atomic.
-            del self._records[proposal.action_id]
+            self._store.delete_waiting(proposal.action_id, ActionState.APPROVAL_REQUIRED)
         return self.execute(proposal, conflict_node=conflict_node)
 
     def reconcile(self, action_id: str) -> ActionRecord:
         with self._lock:
-            record = self._records.get(action_id)
+            record = self._store.get(action_id)
             if record is None or record.state != ActionState.COMMIT_OUTCOME_UNKNOWN:
                 raise GCPError(ErrorCode.ACTION_STATE_INVALID, "Action is not awaiting reconciliation")
             result = self._connector.reconcile(action_id)
@@ -300,7 +338,7 @@ class GovernedActionGateway:
             result_digest=result.result_digest if result else None,
             receipt=receipt,
         )
-        self._records[record.action_id] = finished
+        self._store.put(finished)
         return finished
 
 
