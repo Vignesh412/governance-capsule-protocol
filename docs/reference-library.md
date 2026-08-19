@@ -30,6 +30,7 @@ The Python package under `src/gcp_reference` turns the v0.1 wire profile and for
 - a validated and digest-bound Governance Graph with explicit join semantics;
 - join-aware downstream-reach and topology-confidence evidence;
 - a framework-neutral policy-runtime adapter boundary;
+- a source-shaped Microsoft ACS adapter preserving all five native verdicts and evidence;
 - deterministic CARM PE, NR, and EB selection with outcome-aware blocking safeguards;
 - most-restrictive and fixed-priority comparison baselines; and
 - deterministic protocol error codes.
@@ -60,5 +61,7 @@ python3 tools/run_competitive_slice.py
 ```
 
 The competitive slice demonstrates that CARM decisions can change with verified downstream reach while topology-blind baselines do not. It is not evidence that the selected decisions are correct or safer. See `docs/competitive-slice-v0.1.md` for the scenario, result, and limitations.
+
+The Microsoft ACS adapter is contract-tested against the published Python result shapes. The native ACS wheel requires Python 3.11+, while this workspace currently runs Python 3.9.6, so live ACS execution remains an explicit integration gate. See `docs/microsoft-acs-integration.md`.
 
 The schema examples contain placeholder proofs and digests because they test representation. The cryptographic tests construct fresh Ed25519 keys and internally consistent signed artifacts.
