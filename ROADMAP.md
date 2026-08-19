@@ -93,12 +93,34 @@ Status: Complete (2026-08-19)
 - RIG is represented as executable evidence sufficiency and abstention behavior.
 - The build sequence reaches one reproducible end-to-end product rather than disconnected components.
 
+## Competitive checkpoint - Build versus integrate
+
+Status: Complete (2026-08-19)
+
+### Work
+
+- Refresh the landscape against Microsoft Agent Governance Toolkit, SentinelAgent, DRP, Agent Receipts, HEM, Policy Cards, CORA, ToolChain-CRC, and related primary sources.
+- Separate implemented, specified, planned, and not-found behavior.
+- Retire novelty claims already covered by current projects.
+- Decide which layers to reuse, integrate, profile, build, or defer.
+- Establish Microsoft AGT as the primary implementation baseline and an integration target.
+- Record Decision 0009.
+
+### Exit criteria
+
+- Every product layer has a build-versus-integrate decision.
+- GCP is narrowed to cross-runtime task continuity rather than a universal policy or receipt system.
+- The remaining differentiation is explicit and falsifiable.
+- The next vertical slice compares against an existing governance runtime and simpler baselines.
+
 ## M4 - Governed Action Gateway and receipts
 
 ### Work
 
 - Complete amendment-diff and signed active-status verification in the trusted kernel.
 - Generate and verify signed enforcement and lifecycle receipts.
+- Evaluate an Agent Receipts-compatible profile before freezing the receipt wire format.
+- Define an external policy-runtime adapter and integrate AGT ACS or OPA/Cedar.
 - Implement the governed action state machine with transactional persistence.
 - Implement atomic reservations, idempotency, outbox delivery, connector reconciliation, and explicit unknown outcomes.
 - Place one protected demonstration connector exclusively behind the gateway.
@@ -110,6 +132,7 @@ Status: Complete (2026-08-19)
 - Retries cannot duplicate approval use or budget consumption.
 - Ambiguous connector outcomes are not treated as failures or silently retried.
 - Receipts reconstruct every attempted governed commit.
+- The gateway can consume a decision from an existing deterministic policy runtime without weakening GCP invariants.
 
 ## M5 - CARM baseline and Governance Graph
 
@@ -120,6 +143,7 @@ Status: Complete (2026-08-19)
 - Implement join-aware downstream reach and topology confidence.
 - Bind every CARM decision to policy, graph, evidence, and configuration snapshots.
 - Generate governance-debt entries for negotiated relaxation.
+- Compare CARM with most-restrictive merge, local-only enforcement, and the integrated policy runtime.
 
 ### Exit criteria
 
@@ -127,6 +151,7 @@ Status: Complete (2026-08-19)
 - The same valid conflict produces a deterministic baseline decision for fixed inputs.
 - Unknown or stale topology cannot be interpreted as zero downstream reach.
 - The paper's baseline mechanism is reproduced before broader product claims.
+- At least one scenario demonstrates a measurable decision difference caused by verified downstream consequences.
 
 ## M6 - RIG evidence resolver and CARM-SE
 
