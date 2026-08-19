@@ -72,67 +72,115 @@ Status: In progress (started 2026-08-15)
 - Child budget allocations cannot exceed the parent balance.
 - Replay, wrong-audience, expiry, invalid-signature, and revocation tests pass.
 
-## M4 - CARM enforcement point
+## Architecture checkpoint - Unified product architecture
+
+Status: Complete (2026-08-19)
 
 ### Work
 
-- Accept a capsule, proposed action, receiver policy, capabilities, and workflow context.
-- Return allow, allow-with-controls, approval-required, or block.
-- Generate signed enforcement receipts.
-- Measure decision overhead.
+- Define Governance Capsule as one product containing GCP, the Governed Action Gateway, CARM, CARM-SE, the Governance Graph, and RIG-aware evidence handling.
+- Separate the deterministic trusted kernel from adaptive intelligence.
+- Define data, control, and evidence planes.
+- Define complete mediation at the action commit boundary.
+- Define the action state machine, transactional reservations, idempotency, ambiguous outcomes, reconciliation, and receipt requirements.
+- Record Decision 0008 and publish the Product Architecture RFC v0.1.
 
 ### Exit criteria
 
-- Enforcement is deterministic for a fixed input.
-- No model output can bypass the decision point.
-- Human approval is scoped, authenticated, expiring, and auditable.
+- Protocol-invalid cases are unambiguously outside CARM negotiation.
+- Every protected side effect has a named enforcement boundary.
+- CARM-SE has an explicit certification and fallback model.
+- RIG is represented as executable evidence sufficiency and abstention behavior.
+- The build sequence reaches one reproducible end-to-end product rather than disconnected components.
 
-## M5 - First framework adapter
+## M4 - Governed Action Gateway and receipts
 
 ### Work
 
-- Integrate with one agent SDK's handoff and tool-execution hooks.
-- Preserve capsule identity and trace correlation across a multi-agent run.
-- Demonstrate malicious child behavior being rejected.
+- Complete amendment-diff and signed active-status verification in the trusted kernel.
+- Generate and verify signed enforcement and lifecycle receipts.
+- Implement the governed action state machine with transactional persistence.
+- Implement atomic reservations, idempotency, outbox delivery, connector reconciliation, and explicit unknown outcomes.
+- Place one protected demonstration connector exclusively behind the gateway.
 
 ### Exit criteria
 
-- A real two-agent workflow passes the full conformance suite.
-- Enforcement receipts reconstruct the complete governed execution path.
+- Enforcement is deterministic for fixed artifacts and snapshots.
+- No governed adapter can reach protected credentials outside the gateway.
+- Retries cannot duplicate approval use or budget consumption.
+- Ambiguous connector outcomes are not treated as failures or silently retried.
+- Receipts reconstruct every attempted governed commit.
 
-## M6 - Protocol bindings
+## M5 - CARM baseline and Governance Graph
 
 ### Work
 
-- Define an A2A extension binding.
-- Define an MCP tool-call binding.
-- Specify discovery and capability negotiation.
-- Implement downgrade protection and unsupported-policy behavior.
+- Implement typed valid-policy conflicts and PE, NR, and EB.
+- Build the versioned Governance Graph with declared join semantics and snapshot digests.
+- Implement join-aware downstream reach and topology confidence.
+- Bind every CARM decision to policy, graph, evidence, and configuration snapshots.
+- Generate governance-debt entries for negotiated relaxation.
 
 ### Exit criteria
 
-- Critical governance state is attached to durable protocol objects rather than transient messages.
-- No binding requires bearer-token passthrough.
-- Independent producer and consumer implementations exchange a valid capsule.
+- GCP invalidity cannot enter CARM resolution.
+- The same valid conflict produces a deterministic baseline decision for fixed inputs.
+- Unknown or stale topology cannot be interpreted as zero downstream reach.
+- The paper's baseline mechanism is reproduced before broader product claims.
 
-## M7 - Cross-framework demonstration
+## M6 - RIG evidence resolver and CARM-SE
 
 ### Work
 
-- Run supplier onboarding across two agent frameworks and one governed MCP service.
-- Exercise delegation, forked budgets, human approval, revocation, and completion.
-- Publish reproducible traces and measurements.
+- Define evidence schemas, provenance, freshness, contradiction, and purpose constraints.
+- Implement executable identifiability contracts and structured evidence requirements.
+- Implement CARM-SE certification envelopes, promotion, expiry, revocation, and fallback.
+- Reproduce selective-automation results and test distribution-shift failure behavior.
 
 ### Exit criteria
 
-- The same invariants hold across all boundaries.
-- The demonstration can be reproduced from a clean environment.
-- Limitations and failed cases are published with the successful result.
+- Missing decision-relevant evidence produces a request or abstention rather than a guessed resolution.
+- CARM-SE cannot act outside an active compatible certification envelope.
+- Automation rate is not used as a proxy for calibration validity.
+- Every selective decision records its risk ceiling, certificate, and evidence snapshot.
 
-## M8 - Draft protocol and conformance suite
+## M7 - First framework adapter and MCP tool boundary
 
 ### Work
 
+- Integrate one agent SDK's delegation and tool-execution hooks.
+- Define an MCP governed-tool binding.
+- Preserve capsule identity and receipt correlation across a real multi-agent run.
+- Demonstrate malicious child behavior and direct-tool bypass prevention.
+
+### Exit criteria
+
+- A real two-agent workflow passes the core conformance suite.
+- The protected MCP tool is accessible only through the gateway.
+- Receipts reconstruct the complete governed execution path.
+- A malicious child cannot expand authority or bypass the action boundary.
+
+## M8 - Cross-framework supplier-onboarding demonstration
+
+### Work
+
+- Add a second independent agent framework and an A2A binding.
+- Exercise delegation, parallel budgets, policy conflict, evidence acquisition, CARM-SE, human approval, ambiguous connector recovery, revocation, and compensation.
+- Build a minimal approval queue and governance timeline.
+- Publish reproducible traces, measurements, failures, and limitations.
+
+### Exit criteria
+
+- The same GCP semantics and action-boundary guarantees hold across both frameworks and MCP.
+- A mid-workflow revocation suspends affected descendants while unaffected work can continue.
+- The demonstration is reproducible from a clean environment.
+- Latency, review burden, residual risk, and failed cases are published.
+
+## M9 - Protocol bindings, draft, and conformance suite
+
+### Work
+
+- Finalize A2A and MCP bindings, discovery, capability negotiation, and downgrade protection.
 - Publish a normative draft using MUST, SHOULD, and MAY consistently.
 - Release language-neutral test vectors.
 - Invite external implementation and security review.
@@ -142,3 +190,4 @@ Status: In progress (started 2026-08-15)
 - At least two implementations pass the core conformance profile.
 - At least one implementation is meaningfully independent of the reference library.
 - Open security questions are documented rather than hidden by the specification.
+- No binding requires bearer-token passthrough.
