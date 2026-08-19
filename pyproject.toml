@@ -17,6 +17,9 @@ dependencies = [
 acs = [
   "agent-control-specification==0.3.1b1; python_version >= '3.11'",
 ]
+test = [
+  "pytest>=8,<9",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
