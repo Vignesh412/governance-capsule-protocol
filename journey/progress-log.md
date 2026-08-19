@@ -472,6 +472,35 @@ This is an explicitly invoked single-host recovery worker, not yet a leased asyn
 - `tools/run_outbox_recovery_demo.py`
 - `docs/commit-intent-recovery-v0.1.md`
 
+## 2026-08-19 - Real signed-capsule gateway kernel
+
+### Completed
+
+- Replaced the gateway's permissive authorization callback in the product demo with a concrete signed-capsule verifier.
+- Enforced schema, Ed25519/JCS proof, issuer/key role binding, audience, validity, revocation freshness, action/resource authority, constraints, mandatory pre-action obligations, and replay limits.
+- Made identical action retries idempotent at the capsule-use boundary.
+- Propagated verified kernel facts into the signed gateway receipt controls.
+- Added negative end-to-end tests proving failures occur before policy evaluation and connector access.
+
+### Test result
+
+`python3 -m pytest`: 88 passed, 1 native-ACS test skipped locally.
+
+### Demonstrated result
+
+A freshly signed root capsule authorizes exactly one supplier-create path through kernel, local policy, gateway, and connector. Tampering, expiry, revocation, unauthorized action, unsatisfied obligation, and untrusted issuer-role binding produce deterministic rejection without downstream execution.
+
+### Remaining work
+
+Compose derived-capsule lineage and delegation proofs into the action boundary, persist replay and approval state transactionally, and define a signed active-status response profile.
+
+### New evidence
+
+- `src/gcp_reference/action_kernel.py`
+- `tests/test_action_kernel.py`
+- `tools/run_signed_capsule_gateway_demo.py`
+- `docs/signed-capsule-gateway-v0.1.md`
+
 ### Next work
 
 Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
