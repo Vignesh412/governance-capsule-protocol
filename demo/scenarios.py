@@ -39,6 +39,40 @@ CHILD = "spiffe://example.com/agent/supplier-operations"
 
 SCENARIOS = (
     {
+        "id": "live-native",
+        "name": "Live OpenAI → Google",
+        "description": "Real OpenAI Agents SDK and Google ADK model runs are joined by a signed Governance Capsule and a protected action boundary.",
+        "use_case": "A live OpenAI procurement agent delegates supplier #42 to a live Google ADK specialist.",
+        "task": "Prove that two real model runtimes can participate without either model becoming the source of authority.",
+        "governance": "Signed authority · mandatory audit · $2 child budget · live revocation freshness · exact proposal binding",
+        "change": "Both SDKs and model providers execute for real; GCP remains the trusted control and evidence plane.",
+        "why_it_matters": "This is the credible native showcase: heterogeneous agents execute, governance gates the side effect, and the evidence identifies both runtime boundaries.",
+        "source_agent": "Live procurement agent",
+        "source_framework": "OPENAI AGENTS SDK · LIVE",
+        "destination_agent": "Live supplier agent",
+        "destination_framework": "GOOGLE ADK · LIVE",
+        "expected": "ALLOW",
+        "tone": "allow",
+        "execution_mode": "live-native",
+    },
+    {
+        "id": "live-native-revoked",
+        "name": "Live revocation block",
+        "description": "Both native agents run, but the root authority is revoked before the Google ADK tool reaches the gateway.",
+        "use_case": "Procurement cancels supplier onboarding after it has already been delegated across providers.",
+        "task": "Prove that revocation reaches delegated work and prevents the real receiving runtime from causing a side effect.",
+        "governance": "Same signed task · cascading root revocation · online freshness check · zero permitted side effects",
+        "change": "The original authority becomes revoked after delegation but before protected execution.",
+        "why_it_matters": "The strongest block proof is operational: both agents may run, but the supplier connector must remain untouched.",
+        "source_agent": "Live procurement agent",
+        "source_framework": "OPENAI AGENTS SDK · LIVE",
+        "destination_agent": "Live supplier agent",
+        "destination_framework": "GOOGLE ADK · LIVE",
+        "expected": "BLOCK",
+        "tone": "block",
+        "execution_mode": "live-native",
+    },
+    {
         "id": "cross-framework",
         "name": "OpenAI → Google ADK",
         "description": "A governed supplier task leaves an OpenAI agent boundary and is verified at a Google ADK boundary before execution.",
@@ -53,6 +87,22 @@ SCENARIOS = (
         "destination_framework": "GOOGLE ADK",
         "expected": "ALLOW",
         "tone": "allow",
+    },
+    {
+        "id": "authorized-risk",
+        "name": "Authorized, but risky",
+        "description": "The delegated contract is completely valid, but current risk evidence makes immediate execution unsafe.",
+        "use_case": "A Google ADK supplier agent receives valid authority to create supplier #42 after an OpenAI-side handoff.",
+        "task": "The agent proposes immediate onboarding even though screening returned an unresolved possible sanctions match.",
+        "governance": "Valid signature · valid supplier.create authority · audit retained · $2 child budget · no revocation",
+        "change": "Nothing is wrong with the delegation. New runtime evidence conflicts with the organizational allow policy.",
+        "why_it_matters": "GCP proves the request is authentic and in scope; CARM separately recognizes that valid authority is not sufficient evidence that execution is safe.",
+        "source_agent": "OpenAI procurement agent",
+        "source_framework": "OPENAI AGENTS SDK",
+        "destination_agent": "Google supplier agent",
+        "destination_framework": "GOOGLE ADK",
+        "expected": "APPROVAL",
+        "tone": "recover",
     },
     {
         "id": "valid-delegation",
@@ -298,14 +348,58 @@ def _policy():
     )
 
 
-def _gateway(kernel, connector, *, store=None, before_connector=None, receipt_key=None):
+def _risk_policy():
+    """Normalize trusted runtime evidence into a CARM policy conflict."""
+
+    def evaluate(proposal):
+        values = [
+            PolicyEvaluation(
+                "urn:policy:supplier-create",
+                "1",
+                PolicyLayer.ORGANIZATIONAL,
+                PolicyEffect.ALLOW,
+                "SUPPLIER_CREATE_ALLOWED",
+                runtime_id="gcp-demo-risk-runtime",
+                native_verdict="allow",
+                required_controls=("AUDIT_EVENT_REQUIRED",),
+            )
+        ]
+        if proposal.metadata.get("screening_status") == "UNRESOLVED_POSSIBLE_MATCH":
+            values.append(
+                PolicyEvaluation(
+                    "urn:policy:sanctions-screening",
+                    "1",
+                    PolicyLayer.REGULATORY,
+                    PolicyEffect.BLOCK,
+                    "SANCTIONS_MATCH_UNRESOLVED",
+                    runtime_id="gcp-demo-risk-runtime",
+                    native_verdict="block",
+                    required_controls=("HUMAN_COMPLIANCE_REVIEW",),
+                    evidence_artifact="urn:evidence:screening:supplier-42",
+                )
+            )
+        return values
+
+    return CallablePolicyRuntime("gcp-demo-risk-runtime", evaluate)
+
+
+def _gateway(
+    kernel,
+    connector,
+    *,
+    store=None,
+    before_connector=None,
+    receipt_key=None,
+    policy_runtime=None,
+    approved=True,
+):
     return GovernedActionGateway(
         gateway_id="urn:gcp:gateway:visual-demo",
-        policy_runtime=_policy(),
+        policy_runtime=policy_runtime or _policy(),
         graph=GovernanceGraph([GraphNode("commit")], []),
         connector=connector,
         kernel_verifier=kernel,
-        approval_verifier=lambda proposal: True,
+        approval_verifier=lambda proposal: approved,
         receipt_key=receipt_key or Ed25519PrivateKey.generate(),
         receipt_verification_method="https://gateway.example.com/keys/visual-demo",
         action_store=store,
@@ -508,7 +602,7 @@ def _run_recovery():
         }
 
 
-def _run_cross_framework():
+def _run_cross_framework(*, risky=False):
     root, child, proof, issuer_key, delegator_key = _artifacts()
     transport_key = Ed25519PrivateKey.generate()
     transport_method = "https://governance.example.com/keys/openai-visual-transport"
@@ -519,18 +613,26 @@ def _run_cross_framework():
         DELEGATOR_METHOD: delegator_key.public_key(),
         transport_method: transport_key.public_key(),
     })
+    scenario_id = "authorized-risk" if risky else "cross-framework"
+    metadata = {"supplier_name": "Atlas Components"}
+    if risky:
+        metadata.update({
+            "screening_status": "UNRESOLVED_POSSIBLE_MATCH",
+            "screening_evidence": "urn:evidence:screening:supplier-42",
+            "requested_execution": "IMMEDIATE",
+        })
     proposal = ActionProposal(
-        "urn:gcp:action:visual-cross-framework", "supplier.create", "urn:supplier:42",
-        "sha256:" + "8" * 64, {"supplier_name": "Atlas Components"})
+        "urn:gcp:action:visual-" + scenario_id, "supplier.create", "urn:supplier:42",
+        "sha256:" + "8" * 64, metadata)
     destination = FrameworkIdentity("google-adk-python", destination_runtime)
     source = OpenAIGovernanceHandoffAdapter(
         runtime_id=source_runtime, destination=destination,
         signing_key=transport_key, verification_method=transport_method)
     envelope = source.export(
-        transport_id="urn:gcp:transport:visual-openai-to-adk",
+        transport_id="urn:gcp:transport:visual-" + scenario_id,
         proposal=proposal, transitions=[DelegationTransition(root, child, proof)],
         created_at="2026-08-19T08:58:00Z", expires_at="2026-08-19T09:08:00Z",
-        nonce="urn:gcp:nonce:visual-cross-framework")
+        nonce="urn:gcp:nonce:visual-" + scenario_id)
     boundary = GoogleADKGovernanceBoundary(
         runtime_id=destination_runtime, presenter=CHILD, now=lambda: NOW, resolver=resolver,
         authorized_transport_sources={source_runtime: (transport_method,)},
@@ -540,9 +642,30 @@ def _run_cross_framework():
         obligation_verifier=lambda obligation, action: True)
     accepted = boundary.accept(envelope)
     connector = InMemorySupplierConnector()
-    record = _gateway(accepted.kernel_verifier, connector).execute(proposal, conflict_node="commit")
+    record = _gateway(
+        accepted.kernel_verifier,
+        connector,
+        policy_runtime=_risk_policy() if risky else None,
+        approved=not risky,
+    ).execute(proposal, conflict_node="commit")
+    timeline = [
+        {"label": "OpenAI handoff", "detail": "Application context exports signed governance; model metadata grants no authority", "status": "pass"},
+        {"label": "Signed GCP transport", "detail": "Source, destination, proposal, lineage, expiry, and nonce are integrity-bound", "status": "pass"},
+        {"label": "GCP contract verified", "detail": "Authority is valid for supplier.create #42; audit, budget, and revocation rules all pass", "status": "pass"},
+    ]
+    if risky:
+        timeline.extend([
+            {"label": "CARM risk detected", "detail": "Trusted screening evidence reports an unresolved possible sanctions match", "status": "warn"},
+            {"label": "Human approval boundary", "detail": "Regulatory block conflicts with organizational allow; execution is paused for compliance review", "status": "warn"},
+            {"label": "Protected action paused", "detail": "The supplier connector was not called; side effects remain zero", "status": "pass"},
+        ])
+    else:
+        timeline.extend([
+            {"label": "Google ADK boundary", "detail": "Receiving callback verifies transport before the protected tool is available", "status": "pass"},
+            {"label": "Protected action", "detail": "Governed gateway calls the supplier connector exactly once", "status": "pass"},
+        ])
     return {
-        "scenario_id": "cross-framework",
+        "scenario_id": scenario_id,
         "state": record.state.value,
         "decision": record.decision.value,
         "reason_codes": list(record.reason_codes),
@@ -550,6 +673,20 @@ def _run_cross_framework():
         "connector_calls": connector.commit_calls,
         "suppliers_created": len(connector.suppliers),
         "transport_digest": accepted.verified_transport.digest,
+        "layer_outcomes": {
+            "gcp": {
+                "status": "VERIFIED",
+                "detail": "Authentic delegation; authority narrowed; obligations and budget preserved.",
+            },
+            "carm": {
+                "status": "RISK_DETECTED" if risky else "NO_CONFLICT",
+                "detail": "Unresolved screening evidence requires human review." if risky else "No blocking runtime policy conflict.",
+            },
+            "action": {
+                "status": "PAUSED" if risky else "COMMITTED",
+                "detail": "Zero connector calls pending approval." if risky else "Connector called exactly once.",
+            },
+        },
         "lineage": [
             {
                 "role": "OpenAI source capsule", "subject": DELEGATOR,
@@ -564,13 +701,7 @@ def _run_cross_framework():
                 "digest": artifact_digest(child),
             },
         ],
-        "timeline": [
-            {"label": "OpenAI handoff", "detail": "Application context exports signed governance; model metadata grants no authority", "status": "pass"},
-            {"label": "Signed GCP transport", "detail": "Source, destination, proposal, lineage, expiry, and nonce are integrity-bound", "status": "pass"},
-            {"label": "Google ADK boundary", "detail": "Receiving callback verifies transport before the protected tool is available", "status": "pass"},
-            {"label": "Delegation semantics", "detail": "Authority narrowed; audit obligation and budget survived the framework change", "status": "pass"},
-            {"label": "Protected action", "detail": "Governed gateway calls the supplier connector exactly once", "status": "pass"},
-        ],
+        "timeline": timeline,
         "receipt": dict(record.receipt or {}),
     }
 
@@ -579,8 +710,12 @@ def run_scenario(scenario_id):
     known = {item["id"] for item in SCENARIOS}
     if scenario_id not in known:
         raise ValueError("Unknown scenario")
+    if scenario_id in ("live-native", "live-native-revoked"):
+        raise ValueError("Live native scenarios must run through the streaming native endpoint")
     if scenario_id == "crash-recovery":
         return _run_recovery()
     if scenario_id == "cross-framework":
         return _run_cross_framework()
+    if scenario_id == "authorized-risk":
+        return _run_cross_framework(risky=True)
     return _run_delegation(scenario_id)
