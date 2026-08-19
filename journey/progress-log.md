@@ -556,3 +556,48 @@ Finish the remaining trusted-kernel items, then build the competitive vertical s
 ### Claim boundary
 
 This is a deterministic SDK-contract proof, not yet a native model-driven SDK execution result. The native construction test is ready behind the `frameworks` extra, but the restricted sandbox could not download its PyPI dependencies.
+
+## 2026-08-19 - Live native product showcase implementation
+
+### Built
+
+- Added an optional real OpenAI Agents SDK to Google ADK execution path.
+- Kept governance in trusted application state: the OpenAI model can request delegation but cannot create authority.
+- Passed the signed transport through private ADK session state and bound the Google tool request to the exact transported proposal.
+- Intercepted the protected ADK tool before its original body and routed accepted work through the Governed Action Gateway.
+- Added progressive NDJSON runtime events so the browser shows OpenAI, signing, ADK verification, and gateway execution while they occur.
+- Added explicit readiness reporting and a deterministic fallback when SDKs or credentials are unavailable.
+
+### Verification
+
+The injected-runtime allow test commits exactly once; the injected-runtime revocation test runs both boundaries with zero connector calls; and both prove model output is not used as governance. The installed Google ADK callback/agent constructor gate passes. The complete result is 104 tests passed and 2 optional integrations skipped. Provider-backed execution remains unverified locally because credentials are absent and the restricted workspace could not download `openai-agents` from PyPI.
+
+### Claim boundary
+
+The native product path is implemented and testable with credentials. Until a credentialed run completes, the evidence supports the orchestration and enforcement contract—not a claim that both provider APIs were executed in this workspace.
+
+## 2026-08-19 - Contract integrity and runtime judgment separated
+
+### Built
+
+- Added an `Authorized, but risky` OpenAI-to-Google-ADK deterministic scenario.
+- Kept the signed delegation completely valid: authority narrows correctly, the audit obligation survives, the child budget is contained, and no ancestor is revoked.
+- Added trusted runtime evidence representing an unresolved possible sanctions match.
+- Normalized organizational allow and regulatory block evidence through the existing CARM policy-runtime boundary.
+- Routed the resulting high-severity conflict to human approval with zero connector calls and zero side effects.
+- Added a three-part UI result: `GCP VERIFIED`, `CARM RISK_DETECTED`, and `ACTION PAUSED`.
+- Documented that GCP proves contract integrity, while neither GCP nor CARM proves the truth of arbitrary tool output or catches every coherent-but-flawed plan.
+
+### Verification
+
+`python3 -m pytest`: 105 passed, 2 optional integrations skipped.
+
+The new scenario returns `APPROVAL_REQUIRED`, reason
+`CARM_AUTOMATED_BLOCK_REROUTED`, retains both audit and human-review controls,
+and leaves the protected supplier connector untouched.
+
+### Claim boundary
+
+CARM acts on trusted, normalized screening evidence in this scenario. It does
+not independently discover the sanctions risk and this result is not evidence
+of general plan-correctness or AI-safety capability.
