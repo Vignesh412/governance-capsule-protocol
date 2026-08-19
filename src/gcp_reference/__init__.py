@@ -45,6 +45,7 @@ from .gateway import (
     GovernedActionGateway,
     InMemorySupplierConnector,
     InMemoryActionStore,
+    SimulatedProcessCrash,
 )
 from .persistence import SQLiteActionStore
 from .policy import (
@@ -77,6 +78,7 @@ __all__ = [
     "JoinType",
     "InMemorySupplierConnector",
     "InMemoryActionStore",
+    "SimulatedProcessCrash",
     "KeyResolver",
     "PolicyConflict",
     "PolicyEffect",
