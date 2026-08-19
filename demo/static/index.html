@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive Governance Capsule Protocol reference demonstration">
+  <title>Governance Capsule · Delegation Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Governance Capsule home">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>GOVERNANCE CAPSULE</span>
+        <small>PROTOCOL CANDIDATE</small>
+      </a>
+      <div class="kernel-status"><i></i> Reference kernel connected</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">INTERACTIVE DELEGATION LAB</p>
+          <h1>Governance should<br><em>travel with the work.</em></h1>
+          <p class="hero-copy">Choose a handoff condition. The real reference kernel will verify signed authority, inherited obligations, conserved budgets, revocation, and protected execution.</p>
+        </div>
+        <div class="hero-proof">
+          <span>LIVE PROOF</span>
+          <strong id="proofCount">8</strong>
+          <p>executable governance scenarios</p>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="Scenario workspace">
+        <aside class="scenario-panel">
+          <div class="section-label">
+            <span>01</span>
+            <p>Choose a scenario</p>
+          </div>
+          <div id="scenarioList" class="scenario-list" aria-live="polite">
+            <div class="loading-line"></div>
+            <div class="loading-line"></div>
+            <div class="loading-line"></div>
+          </div>
+        </aside>
+
+        <section class="stage">
+          <div class="section-label">
+            <span>02</span>
+            <p>Governed handoff</p>
+          </div>
+
+          <div class="stage-heading">
+            <div>
+              <h2 id="scenarioTitle">Loading scenarios…</h2>
+              <p id="scenarioDescription">Connecting to the local reference kernel.</p>
+            </div>
+            <button id="runButton" class="run-button" type="button" disabled>
+              <span>Run again</span>
+              <b aria-hidden="true">→</b>
+            </button>
+          </div>
+
+          <section id="storyCard" class="story-card" aria-label="Scenario explanation">
+            <div class="story-intro">
+              <small>BUSINESS SCENARIO</small>
+              <h3 id="storyUseCase">Loading the guided scenario…</h3>
+              <p id="storyTask"></p>
+            </div>
+            <div class="story-facts">
+              <div>
+                <span>Governance attached to the work</span>
+                <p id="storyGovernance"></p>
+              </div>
+              <div>
+                <span>What changes in this scenario</span>
+                <p id="storyChange"></p>
+              </div>
+            </div>
+          </section>
+
+          <div class="handoff" id="handoff">
+            <article class="agent-card root-agent">
+              <span class="agent-index">A</span>
+              <div>
+                <small id="sourceFramework">ORIGINATING AGENT</small>
+                <h3 id="sourceAgentName">Procurement intake</h3>
+                <p id="sourceAgentDetail">Creates governed task</p>
+              </div>
+            </article>
+            <div class="capsule-route">
+              <div class="route-line"><i></i></div>
+              <div class="capsule-token" aria-label="Governance Capsule">
+                <svg viewBox="0 0 44 44" aria-hidden="true">
+                  <path d="M13 7h18a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H13a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6Z"/>
+                  <path d="M15 22h14M22 15v14"/>
+                </svg>
+                <span>GCP</span>
+              </div>
+              <small>SIGNED HANDOFF</small>
+            </div>
+            <article class="agent-card child-agent">
+              <span class="agent-index">B</span>
+              <div>
+                <small id="destinationFramework">RECEIVING AGENT</small>
+                <h3 id="destinationAgentName">Supplier operations</h3>
+                <p id="destinationAgentDetail">Requests protected action</p>
+              </div>
+            </article>
+            <div class="gateway-route">
+              <div class="route-line"><i></i></div>
+            </div>
+            <article class="gateway-card">
+              <span class="shield" aria-hidden="true">◇</span>
+              <div>
+                <small>ENFORCEMENT BOUNDARY</small>
+                <h3>Governed Action Gateway</h3>
+                <p>Verify → decide → commit</p>
+              </div>
+            </article>
+          </div>
+
+          <div id="emptyState" class="empty-state">
+            <span>STARTING</span>
+            <p>The selected scenario will execute automatically.</p>
+          </div>
+
+          <div id="results" class="results" hidden>
+            <div class="decision-strip">
+              <div class="decision-symbol" id="decisionSymbol">✓</div>
+              <div>
+                <small>KERNEL OUTCOME</small>
+                <h3 id="decisionTitle">Allowed</h3>
+                <p id="decisionReason">All required invariants held.</p>
+              </div>
+              <div class="decision-stats">
+                <div><strong id="connectorCalls">1</strong><span>connector calls</span></div>
+                <div><strong id="supplierCount">1</strong><span>side effects</span></div>
+              </div>
+            </div>
+            <div class="why-panel">
+              <small>WHY THIS MATTERS</small>
+              <p id="whyItMatters"></p>
+            </div>
+
+            <div class="result-grid">
+              <article class="evidence-panel">
+                <div class="panel-title">
+                  <h3>Verification trace</h3>
+                  <span id="traceStatus">COMPLETE</span>
+                </div>
+                <ol id="timeline" class="timeline"></ol>
+              </article>
+
+              <article class="capsule-panel">
+                <div class="panel-title">
+                  <h3>Capsule inheritance</h3>
+                  <button id="evidenceButton" type="button">View receipt</button>
+                </div>
+                <div id="lineage" class="lineage"></div>
+                <div id="recoveryProof" class="recovery-proof" hidden></div>
+              </article>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <p>Executable research prototype · Results come from the local Python reference implementation</p>
+      <p>GCP v0.1 candidate</p>
+    </footer>
+  </div>
+
+  <dialog id="receiptDialog">
+    <div class="dialog-head">
+      <div>
+        <small>SIGNED ENFORCEMENT EVIDENCE</small>
+        <h2>Decision receipt</h2>
+      </div>
+      <button id="closeDialog" type="button" aria-label="Close receipt">×</button>
+    </div>
+    <pre id="receiptContent"></pre>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
