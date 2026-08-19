@@ -49,7 +49,7 @@ class Resolution:
 
 
 def detect_conflicts(evaluations: Iterable[PolicyEvaluation]) -> Tuple[PolicyConflict, ...]:
-    values = tuple(evaluations)
+    values = tuple(value for value in evaluations if value.effect != PolicyEffect.REQUIRE_APPROVAL)
     conflicts = []
     for left, right in combinations(values, 2):
         if left.effect == right.effect:
@@ -84,8 +84,17 @@ def resolve_carm(
     config: CARMConfig = CARMConfig(),
 ) -> Resolution:
     values = tuple(evaluations)
-    conflicts = detect_conflicts(values)
     reach = graph.estimate_reach(conflict_node)
+    if any(value.effect == PolicyEffect.REQUIRE_APPROVAL for value in values):
+        return Resolution(
+            ResolutionMode.ESCALATION_BOUNDARY,
+            RuntimeDecision.APPROVAL_REQUIRED,
+            0,
+            reach,
+            (),
+            ("CARM_UPSTREAM_APPROVAL_REQUIRED",),
+        )
+    conflicts = detect_conflicts(values)
     if not conflicts:
         decision = (
             RuntimeDecision.BLOCK
