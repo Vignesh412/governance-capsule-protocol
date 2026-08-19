@@ -68,6 +68,7 @@ class ActionRecord:
     result_reference: Optional[str] = None
     result_digest: Optional[str] = None
     receipt: Optional[Mapping[str, Any]] = None
+    proposal: Optional[Mapping[str, Any]] = None
 
 
 class ActionStore(Protocol):
@@ -77,6 +78,7 @@ class ActionStore(Protocol):
     def get(self, action_id: str) -> Optional[ActionRecord]: ...
     def put(self, record: ActionRecord) -> None: ...
     def delete_waiting(self, action_id: str, expected: ActionState) -> None: ...
+    def pending_commits(self) -> Tuple[ActionRecord, ...]: ...
 
 
 class InMemoryActionStore:
@@ -105,6 +107,13 @@ class InMemoryActionStore:
             if current is None or current.state != expected:
                 raise GCPError(ErrorCode.ACTION_STATE_INVALID, "Action state changed before resume")
             del self._records[action_id]
+
+    def pending_commits(self) -> Tuple[ActionRecord, ...]:
+        with self._lock:
+            return tuple(
+                record for record in self._records.values()
+                if record.state in {ActionState.COMMITTING, ActionState.COMMIT_OUTCOME_UNKNOWN}
+            )
 
 
 def _proposal_document(proposal: ActionProposal) -> Mapping[str, Any]:
@@ -151,6 +160,7 @@ class GovernedActionGateway:
         receipt_key: Ed25519PrivateKey,
         receipt_verification_method: str,
         action_store: Optional[ActionStore] = None,
+        before_connector: Optional[Callable[[ActionProposal], None]] = None,
     ) -> None:
         self.gateway_id = gateway_id
         self._policy_runtime = policy_runtime
@@ -161,6 +171,7 @@ class GovernedActionGateway:
         self._receipt_key = receipt_key
         self._receipt_method = receipt_verification_method
         self._store = action_store or InMemoryActionStore()
+        self._before_connector = before_connector
         self._lock = RLock()
 
     def get(self, action_id: str) -> Optional[ActionRecord]:
@@ -170,7 +181,13 @@ class GovernedActionGateway:
     def execute(self, proposal: ActionProposal, *, conflict_node: str) -> ActionRecord:
         proposal_digest = artifact_digest(_proposal_document(proposal))
         with self._lock:
-            initial = ActionRecord(proposal.action_id, proposal_digest, ActionState.VALIDATING, 1)
+            initial = ActionRecord(
+                proposal.action_id,
+                proposal_digest,
+                ActionState.VALIDATING,
+                1,
+                proposal=_proposal_document(proposal),
+            )
             existing = self._store.claim(initial)
             if existing is not None:
                 if existing.proposal_digest != proposal_digest:
@@ -227,6 +244,8 @@ class GovernedActionGateway:
                     policy_snapshot_digest=policy_digest,
                 )
                 self._store.put(replace(record, state=ActionState.COMMITTING))
+                if self._before_connector is not None:
+                    self._before_connector(proposal)
                 result = self._connector.commit(proposal.action_id, proposal)
                 return self._apply_connector_result(record, result)
             except GCPError as error:
@@ -263,10 +282,48 @@ class GovernedActionGateway:
     def reconcile(self, action_id: str) -> ActionRecord:
         with self._lock:
             record = self._store.get(action_id)
-            if record is None or record.state != ActionState.COMMIT_OUTCOME_UNKNOWN:
+            if record is None or record.state not in {
+                ActionState.COMMITTING,
+                ActionState.COMMIT_OUTCOME_UNKNOWN,
+            }:
                 raise GCPError(ErrorCode.ACTION_STATE_INVALID, "Action is not awaiting reconciliation")
             result = self._connector.reconcile(action_id)
+            if result.outcome == ConnectorOutcome.NOT_COMMITTED and record.state == ActionState.COMMITTING:
+                proposal = self._proposal_from_record(record)
+                result = self._connector.commit(action_id, proposal)
             return self._apply_connector_result(record, result)
+
+    def recover_pending(self) -> Tuple[ActionRecord, ...]:
+        """Reconcile every durable commit intent after worker or process restart."""
+
+        recovered = []
+        for record in self._store.pending_commits():
+            recovered.append(self.reconcile(record.action_id))
+        return tuple(recovered)
+
+    @staticmethod
+    def _proposal_from_record(record: ActionRecord) -> ActionProposal:
+        value = record.proposal
+        if not isinstance(value, Mapping):
+            raise GCPError(
+                ErrorCode.ACTION_STATE_INVALID,
+                "Commit intent has no recoverable proposal payload",
+                {"action_id": record.action_id},
+            )
+        proposal = ActionProposal(
+            action_id=value["action_id"],
+            action=value["action"],
+            resource=value["resource"],
+            parameters_digest=value["parameters_digest"],
+            metadata=value.get("metadata", {}),
+        )
+        if artifact_digest(_proposal_document(proposal)) != record.proposal_digest:
+            raise GCPError(
+                ErrorCode.ACTION_ID_CONFLICT,
+                "Persisted commit payload does not match its proposal digest",
+                {"action_id": record.action_id},
+            )
+        return proposal
 
     def _apply_connector_result(self, record: ActionRecord, result: ConnectorResult) -> ActionRecord:
         if result.outcome == ConnectorOutcome.COMMITTED:
@@ -349,6 +406,7 @@ class InMemorySupplierConnector:
         self.suppliers: Dict[str, Mapping[str, Any]] = {}
         self.commit_calls = 0
         self.lose_next_response = False
+        self.crash_after_next_commit = False
 
     def commit(self, action_id: str, proposal: ActionProposal) -> ConnectorResult:
         self.commit_calls += 1
@@ -365,6 +423,9 @@ class InMemorySupplierConnector:
         if self.lose_next_response:
             self.lose_next_response = False
             return replace(result, outcome=ConnectorOutcome.UNKNOWN)
+        if self.crash_after_next_commit:
+            self.crash_after_next_commit = False
+            raise SimulatedProcessCrash("connector committed before gateway process stopped")
         return result
 
     def reconcile(self, action_id: str) -> ConnectorResult:
@@ -376,3 +437,7 @@ class InMemorySupplierConnector:
             "urn:gcp:supplier-result:" + action_id,
             artifact_digest(supplier),
         )
+
+
+class SimulatedProcessCrash(BaseException):
+    """Fault-injection signal intentionally not caught by gateway Exception handling."""
