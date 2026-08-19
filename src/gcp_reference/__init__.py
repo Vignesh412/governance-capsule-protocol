@@ -7,6 +7,7 @@ from .approval import (
     validate_amendment,
     validate_approval,
 )
+from .adapters import ACSInterventionRuntime
 from .carm import (
     CARMConfig,
     PolicyConflict,
@@ -49,6 +50,7 @@ from .semantics import validate_audience, validate_delegation, validate_delegati
 __all__ = [
     "AllocationLedger",
     "ApprovalRegistry",
+    "ACSInterventionRuntime",
     "ActionProposal",
     "CARMConfig",
     "CallablePolicyRuntime",
