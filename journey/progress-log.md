@@ -356,6 +356,32 @@ Integrate Microsoft AGT ACS through the policy-runtime boundary, bind full decis
 - `docs/competitive-slice-v0.1.md`
 - `research/decisions/0010-graph-sensitive-comparative-slice.md`
 
+## 2026-08-19 - Microsoft ACS adapter contract
+
+### Completed
+
+- Verified the current ACS architecture and Python host interfaces against Microsoft source at commit `7d0cef5d9820a865c3c19b07bd39ecf7053b58a1`.
+- Added an optional, structurally typed ACS adapter without introducing a mandatory Microsoft dependency.
+- Preserved `allow`, `warn`, `deny`, `escalate`, and `transform` rather than reducing the interface to a Boolean decision.
+- Made warning audit and transformed-target application explicit downstream controls.
+- Made ACS escalation a non-negotiable approval requirement at the CARM boundary.
+- Preserved ACS evidence artefacts and stable reason codes while redacting runtime exception text.
+- Added support for the synchronous ACS `HostSession` shape and mapping/object result forms.
+
+### Test result
+
+`python3 -m pytest`: 70 passed.
+
+The schema suite remains green.
+
+### Limitation
+
+The reviewed ACS Python SDK `0.3.1b1` requires Python 3.11+. This workspace runs Python 3.9.6. The adapter is therefore source-contract tested but has not yet executed the native ACS runtime. We will not call this a completed external integration until the pinned live-manifest gate passes under Python 3.11+.
+
+### Next work
+
+Run a pinned native ACS manifest through `HostSession`, exercise all five verdicts, and bind the resulting policy evidence into a complete CARM decision receipt.
+
 ### Next work
 
 Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
