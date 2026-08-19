@@ -415,6 +415,35 @@ State and transaction boundaries remain process-local. Full capsule, revocation,
 - `tools/run_gateway_demo.py`
 - `docs/gateway-slice-v0.1.md`
 
+## 2026-08-19 - Restart-safe gateway ledger
+
+### Completed
+
+- Refactored gateway state behind an action-store contract.
+- Implemented a transactional SQLite store with action-ID uniqueness, WAL journaling, and full synchronous durability.
+- Persisted proposal bindings, states, decisions, controls, snapshot digests, connector results, and signed receipts.
+- Recreated the gateway with a new store connection after an ambiguous connector response.
+- Reconciled the durable unknown state to committed without issuing another connector call.
+- Verified that an action ID cannot be rebound to a different proposal after restart.
+
+### Test result
+
+`python3 -m pytest`: 79 passed, 1 native-ACS test skipped locally.
+
+### Demonstrated result
+
+One supplier was created, the response was lost, gateway state was closed and reopened, the action was reconciled, and an identical retry returned `COMMITTED`. Connector commit count remained one.
+
+### Limitation
+
+This proves restart-safe action-ledger behavior on one host. It does not yet prove multi-instance serialization, durable outbox recovery, or atomic composition with approval and budget reservations.
+
+### New evidence
+
+- `src/gcp_reference/persistence.py`
+- `tools/run_durable_gateway_demo.py`
+- `docs/durable-gateway-slice-v0.1.md`
+
 ### Next work
 
 Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
