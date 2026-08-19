@@ -7,6 +7,17 @@ from .approval import (
     validate_amendment,
     validate_approval,
 )
+from .carm import (
+    CARMConfig,
+    PolicyConflict,
+    Resolution,
+    ResolutionMode,
+    RuntimeDecision,
+    detect_conflicts,
+    fixed_priority,
+    most_restrictive,
+    resolve_carm,
+)
 from .crypto import KeyResolver, artifact_digest, sign_artifact, verify_artifact
 from .errors import ErrorCode, GCPError
 from .replay import UseRegistry
@@ -18,18 +29,49 @@ from .revocation import (
     status_from_signed_revocation,
 )
 from .schema import SchemaValidator, validate_structure
+from .governance_graph import (
+    GovernanceGraph,
+    GraphEdge,
+    GraphNode,
+    JoinType,
+    ReachEstimate,
+)
+from .policy import (
+    ActionProposal,
+    CallablePolicyRuntime,
+    PolicyEffect,
+    PolicyEvaluation,
+    PolicyLayer,
+    PolicyRuntime,
+)
 from .semantics import validate_audience, validate_delegation, validate_delegation_proof
 
 __all__ = [
     "AllocationLedger",
     "ApprovalRegistry",
+    "ActionProposal",
+    "CARMConfig",
+    "CallablePolicyRuntime",
     "ErrorCode",
     "GCPError",
+    "GovernanceGraph",
+    "GraphEdge",
+    "GraphNode",
+    "JoinType",
     "KeyResolver",
+    "PolicyConflict",
+    "PolicyEffect",
+    "PolicyEvaluation",
+    "PolicyLayer",
+    "PolicyRuntime",
+    "ReachEstimate",
+    "Resolution",
+    "ResolutionMode",
     "RevocationEvaluator",
     "RevocationEvidence",
     "RevocationResult",
     "StatusRecord",
+    "RuntimeDecision",
     "SchemaValidator",
     "UseRegistry",
     "artifact_digest",
@@ -43,4 +85,8 @@ __all__ = [
     "validate_delegation_proof",
     "verify_artifact",
     "validate_structure",
+    "detect_conflicts",
+    "fixed_priority",
+    "most_restrictive",
+    "resolve_carm",
 ]
