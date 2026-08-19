@@ -51,4 +51,4 @@ The SQLite store:
 - A process kill between connector return and unknown-state persistence is not yet covered by a durable outbox worker.
 - Receipt signing keys are supplied to both gateway instances in the demonstration; production key custody and rotation remain separate work.
 
-The next slice must introduce a durable commit-intent/outbox record before connector invocation, then recover after a kill at every transition boundary.
+The next slice now persists a recoverable commit intent and fault-injects stops before and after connector invocation. See `docs/commit-intent-recovery-v0.1.md`. A leased asynchronous outbox worker and multi-instance PostgreSQL semantics remain.
