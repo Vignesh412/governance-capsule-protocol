@@ -298,3 +298,31 @@ Finish Milestone 3 with amendment-diff verification, signed active-status respon
 
 - `docs/product-architecture-rfc-v0.1.md`
 - `research/decisions/0008-unified-product-architecture.md`
+
+## 2026-08-19 - Competitive architecture checkpoint
+
+### Completed
+
+- Re-ran the competitive review against current primary specifications, repositories, and papers rather than relying on the 2026-08-11 framework comparison.
+- Identified Microsoft Agent Governance Toolkit as the closest implementation baseline and a potential integration substrate.
+- Compared SentinelAgent, Delegation Receipt Protocol, Agent Receipts Protocol, Human Escalation Mechanism, Policy Cards, CORA, ToolChain-CRC, and Conformal Selective Acting.
+- Separated implemented/documented behavior from specified, planned, and not-found behavior.
+- Retired novelty claims for monotonic delegation, generic pre-action policy enforcement, approvals, receipts, identity, adapters, budgets considered alone, and conformal execute/abstain control.
+- Narrowed GCP to a task-governance continuity and interoperability profile.
+- Chose to reuse or integrate existing identity, policy, approval, escalation, receipt, and adapter layers.
+- Concentrated the original build on conserved cross-runtime task state, the transactional commit coordinator, Governance Graph, CARM, CARM-SE certification, RIG evidence contracts, and outcome recovery.
+- Added falsifiable go/no-go criteria and a comparative vertical-slice experiment.
+- Recorded Decision 0009.
+
+### Key design result
+
+The original primitives are becoming a category, not a moat. Product value must come from composing them into evidence-aware, cascade-aware governed execution and proving that the combination improves real decisions and recovery across heterogeneous systems.
+
+### Next work
+
+Finish the remaining trusted-kernel items, then build the competitive vertical slice with an existing policy runtime, one governed MCP action, a versioned graph snapshot, a reach-sensitive conflict, a RIG evidence request, and an ambiguous connector reconciliation.
+
+### New evidence
+
+- `research/competitive-architecture-report-2026-08-19.md`
+- `research/decisions/0009-competitive-repositioning.md`
