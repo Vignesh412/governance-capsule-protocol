@@ -44,7 +44,9 @@ from .gateway import (
     ConnectorResult,
     GovernedActionGateway,
     InMemorySupplierConnector,
+    InMemoryActionStore,
 )
+from .persistence import SQLiteActionStore
 from .policy import (
     ActionProposal,
     CallablePolicyRuntime,
@@ -74,6 +76,7 @@ __all__ = [
     "GraphNode",
     "JoinType",
     "InMemorySupplierConnector",
+    "InMemoryActionStore",
     "KeyResolver",
     "PolicyConflict",
     "PolicyEffect",
@@ -89,6 +92,7 @@ __all__ = [
     "StatusRecord",
     "RuntimeDecision",
     "SchemaValidator",
+    "SQLiteActionStore",
     "UseRegistry",
     "artifact_digest",
     "amendment_change_digest",
