@@ -17,6 +17,10 @@ dependencies = [
 acs = [
   "agent-control-specification==0.3.1b1; python_version >= '3.11'",
 ]
+frameworks = [
+  "openai-agents; python_version >= '3.11'",
+  "google-adk>=2,<3; python_version >= '3.11'",
+]
 test = [
   "pytest>=8,<9",
 ]
@@ -33,4 +37,5 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 markers = [
   "acs_live: executes the pinned native Microsoft ACS runtime",
+  "frameworks_native: constructs native OpenAI Agents SDK and Google ADK callback surfaces",
 ]
