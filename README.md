@@ -8,7 +8,7 @@ The project is deliberately not claiming to be a protocol or standard yet. It mu
 
 ## Working hypothesis
 
-Existing agent systems provide combinations of permissions, guardrails, context, handoffs, workflow state, and traces. Governance continuity across heterogeneous delegation boundaries remains largely application-defined.
+Existing projects now provide substantial combinations of deterministic action governance, scope-narrowing delegation, approvals, budgets, revocation, receipts, human escalation, and framework adapters. The remaining product hypothesis is narrower: cross-runtime task-governance continuity combined with graph-wide conflict consequences, certified selective automation, evidence-identifiability contracts, and governed commit recovery.
 
 GCP is worth building if it can demonstrate that a governed task can cross independent agent runtimes without:
 
@@ -38,7 +38,9 @@ Milestone 3 is in progress. The reference library now implements deterministic c
 
 The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
 
-See [CHARTER.md](CHARTER.md), [ROADMAP.md](ROADMAP.md), [docs/product-architecture-rfc-v0.1.md](docs/product-architecture-rfc-v0.1.md), [research/milestone-0-landscape-report.md](research/milestone-0-landscape-report.md), [spec/formal-model-v0.1.md](spec/formal-model-v0.1.md), [spec/wire-profile-v0.1.md](spec/wire-profile-v0.1.md), [schema/README.md](schema/README.md), [docs/reference-library.md](docs/reference-library.md), and [journey/progress-log.md](journey/progress-log.md).
+A 2026-08-19 competitive refresh identified Microsoft Agent Governance Toolkit as the closest implementation baseline and changed the build strategy: reuse existing policy, identity, approval, receipt, escalation, and adapter primitives where possible; build and test the distinct graph/evidence/recovery layer comparatively.
+
+See [CHARTER.md](CHARTER.md), [ROADMAP.md](ROADMAP.md), [docs/product-architecture-rfc-v0.1.md](docs/product-architecture-rfc-v0.1.md), [research/competitive-architecture-report-2026-08-19.md](research/competitive-architecture-report-2026-08-19.md), [research/milestone-0-landscape-report.md](research/milestone-0-landscape-report.md), [spec/formal-model-v0.1.md](spec/formal-model-v0.1.md), [spec/wire-profile-v0.1.md](spec/wire-profile-v0.1.md), [schema/README.md](schema/README.md), [docs/reference-library.md](docs/reference-library.md), and [journey/progress-log.md](journey/progress-log.md).
 
 ## Run locally
 
