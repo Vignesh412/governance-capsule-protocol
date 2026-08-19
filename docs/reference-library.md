@@ -35,6 +35,7 @@ The Python package under `src/gcp_reference` turns the v0.1 wire profile and for
 - most-restrictive and fixed-priority comparison baselines; and
 - an in-memory Governed Action Gateway with proposal binding, idempotent retries, signed product receipts, and explicit ambiguous-outcome reconciliation;
 - a protected idempotent supplier connector for the first end-to-end demonstration; and
+- a transactional SQLite action ledger for restart-safe proposal binding, state, results, and signed receipts; and
 - deterministic protocol error codes.
 
 ## Deliberately not implemented yet
@@ -61,6 +62,7 @@ python3 -m pytest
 python3 tools/validate_schemas.py
 python3 tools/run_competitive_slice.py
 python3 tools/run_gateway_demo.py
+python3 tools/run_durable_gateway_demo.py
 ```
 
 The competitive slice demonstrates that CARM decisions can change with verified downstream reach while topology-blind baselines do not. It is not evidence that the selected decisions are correct or safer. See `docs/competitive-slice-v0.1.md` for the scenario, result, and limitations.
