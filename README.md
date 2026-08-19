@@ -65,6 +65,23 @@ This is a single-host durability result using an idempotent connector. It is not
 
 The current implementation demonstrates graph-sensitive resolution behavior. It does not claim that graph reach alone proves the correctness of a policy decision.
 
+### Contract integrity versus runtime judgment
+
+GCP proves who issued a governance assertion, that it was not altered, and that
+delegation obeyed the protocol's attenuation, obligation, budget, lineage, and
+revocation rules. It does not prove that an authorized action is factually
+correct, beneficial, or safe.
+
+The demonstration therefore keeps two decisions separate. GCP first verifies
+the portable delegation contract. CARM then evaluates normalized local policy
+and trusted runtime evidence before the action gateway can call a connector.
+The `Authorized, but risky` scenario presents a valid supplier-creation capsule
+alongside an unresolved screening signal. GCP reports `VERIFIED`; CARM reports
+`RISK_DETECTED`; the gateway records `APPROVAL_REQUIRED` with zero side effects.
+
+This is a policy-enforcement demonstration, not a claim that CARM can determine
+the truth of arbitrary tool output or detect every coherent-but-flawed plan.
+
 ### Cross-framework transport
 
 - An OpenAI Agents SDK handoff-shaped adapter exports application-owned governance into a signed transport envelope.
@@ -91,6 +108,7 @@ Live mode requires Python 3.11+, the `frameworks` extra, and provider credential
 | Crash after connector success | Recovery discovers the prior commit and does not call the connector again. |
 | Live OpenAI → Google ADK | Optional credentialed mode executes both native runtimes and streams every boundary to the UI. |
 | Live cascading revocation | Both native runtimes execute, but the revoked task is blocked with zero connector calls. |
+| Authorized, but risky | GCP verifies the contract; CARM escalates trusted risk evidence and the connector remains untouched. |
 
 ## Run locally
 
@@ -149,13 +167,13 @@ The delegated-action demonstration should finish with `lineage_verified: true`, 
 
 Verified on 2026-08-19:
 
-- **104 tests passed** after adding the native orchestration, readiness, live revocation, and installed Google ADK constructor gates.
+- **105 tests passed** after adding native orchestration, commit-ambiguity recovery, and the separated GCP/CARM risk-escalation scenario.
 - **2 optional native integrations were skipped**: Microsoft ACS and the OpenAI Agents SDK package are not installed in this workspace. The installed Google ADK callback/agent constructor gate passed.
 - **9 valid schema fixtures** were accepted.
 - **2 structurally invalid fixtures** were rejected.
 - **3 semantic-invalid manifests** were recognized: authority expansion, budget overallocation, and mandatory-obligation removal.
-- The signed delegated-action, cross-framework transport, durable recovery, and all eight deterministic interactive-demo scenarios completed successfully.
-- The optional ninth and tenth scenarios are credentialed live-native allow and revocation paths. Their no-LLM governance orchestration contracts pass locally; provider-backed execution still requires credentials and downloaded SDK dependencies.
+- The signed delegated-action, cross-framework transport, durable recovery, and all nine deterministic interactive-demo scenarios completed successfully.
+- The optional tenth and eleventh scenarios are credentialed live-native allow and revocation paths. Their no-LLM governance orchestration contracts pass locally; provider-backed execution still requires credentials and downloaded SDK dependencies.
 
 ## Trust boundary
 
