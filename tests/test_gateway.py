@@ -16,6 +16,7 @@ from gcp_reference import (
     PolicyEffect,
     PolicyEvaluation,
     PolicyLayer,
+    SQLiteActionStore,
     verify_artifact,
 )
 
@@ -39,8 +40,8 @@ def evaluation(policy_id, layer, effect, controls=()):
     return PolicyEvaluation(policy_id, "1", layer, effect, "TEST", "runtime", effect.value.lower(), controls)
 
 
-def gateway(runtime, *, approved=True, kernel=lambda proposal: (), connector=None):
-    key = Ed25519PrivateKey.generate()
+def gateway(runtime, *, approved=True, kernel=lambda proposal: (), connector=None, store=None, key=None):
+    key = key or Ed25519PrivateKey.generate()
     method = "https://gateway.example/keys/receipt"
     instance = GovernedActionGateway(
         gateway_id="urn:gcp:gateway:test",
@@ -51,6 +52,7 @@ def gateway(runtime, *, approved=True, kernel=lambda proposal: (), connector=Non
         approval_verifier=lambda proposal: approved,
         receipt_key=key,
         receipt_verification_method=method,
+        action_store=store,
     )
     return instance, key, method
 
@@ -144,3 +146,47 @@ def test_ambiguous_success_is_reconciled_without_second_commit():
     assert committed.state == ActionState.COMMITTED
     assert connector.commit_calls == 1
     assert committed.result_digest
+
+
+def test_sqlite_restart_recovers_ambiguous_success_without_second_commit(tmp_path):
+    database = tmp_path / "gateway.sqlite3"
+    connector = InMemorySupplierConnector()
+    connector.lose_next_response = True
+    key = Ed25519PrivateKey.generate()
+    runtime = policies(evaluation("allow", PolicyLayer.TASK, PolicyEffect.ALLOW))
+
+    first_store = SQLiteActionStore(database)
+    first_gateway, _, _ = gateway(runtime, connector=connector, store=first_store, key=key)
+    unknown = first_gateway.execute(action(), conflict_node="commit")
+    assert unknown.state == ActionState.COMMIT_OUTCOME_UNKNOWN
+    first_store.close()
+
+    second_store = SQLiteActionStore(database)
+    restarted_gateway, _, _ = gateway(runtime, connector=connector, store=second_store, key=key)
+    assert restarted_gateway.get(action().action_id).state == ActionState.COMMIT_OUTCOME_UNKNOWN
+    committed = restarted_gateway.reconcile(action().action_id)
+    retried = restarted_gateway.execute(action(), conflict_node="commit")
+    assert committed.state == ActionState.COMMITTED
+    assert retried.state == ActionState.COMMITTED
+    assert connector.commit_calls == 1
+    assert len(connector.suppliers) == 1
+    second_store.close()
+
+
+def test_sqlite_persists_action_id_binding_across_restart(tmp_path):
+    database = tmp_path / "gateway.sqlite3"
+    runtime = policies(evaluation("allow", PolicyLayer.TASK, PolicyEffect.ALLOW))
+    connector = InMemorySupplierConnector()
+    first_store = SQLiteActionStore(database)
+    first, key, _ = gateway(runtime, connector=connector, store=first_store)
+    first.execute(action(), conflict_node="commit")
+    first_store.close()
+
+    second_store = SQLiteActionStore(database)
+    restarted, _, _ = gateway(runtime, connector=connector, store=second_store, key=key)
+    try:
+        restarted.execute(action(digest="sha256:" + "9" * 64), conflict_node="commit")
+        assert False
+    except GCPError as error:
+        assert error.code == ErrorCode.ACTION_ID_CONFLICT
+    second_store.close()
