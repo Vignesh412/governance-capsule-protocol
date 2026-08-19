@@ -15,7 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 acs = [
-  "agent-control-specification>=0.3.1b1; python_version >= '3.11'",
+  "agent-control-specification==0.3.1b1; python_version >= '3.11'",
 ]
 
 [tool.setuptools]
@@ -28,3 +28,6 @@ where = ["src"]
 addopts = "-q"
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+  "acs_live: executes the pinned native Microsoft ACS runtime",
+]
