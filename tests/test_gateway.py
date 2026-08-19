@@ -176,6 +176,35 @@ def test_sqlite_restart_recovers_ambiguous_success_without_second_commit(tmp_pat
     second_store.close()
 
 
+def test_sqlite_restart_recovers_exception_after_connector_side_effect(tmp_path):
+    class TimeoutAfterCommitConnector(InMemorySupplierConnector):
+        def commit(self, action_id, proposal):
+            super().commit(action_id, proposal)
+            raise TimeoutError("response timed out after external write")
+
+    database = tmp_path / "gateway.sqlite3"
+    connector = TimeoutAfterCommitConnector()
+    key = Ed25519PrivateKey.generate()
+    runtime = policies(evaluation("allow", PolicyLayer.TASK, PolicyEffect.ALLOW))
+
+    first_store = SQLiteActionStore(database)
+    first, _, _ = gateway(runtime, connector=connector, store=first_store, key=key)
+    unknown = first.execute(action(), conflict_node="commit")
+    assert unknown.state == ActionState.COMMIT_OUTCOME_UNKNOWN
+    assert unknown.reason_codes == ("GCP_COMMIT_OUTCOME_UNKNOWN",)
+    assert connector.commit_calls == 1
+    assert len(connector.suppliers) == 1
+    first_store.close()
+
+    second_store = SQLiteActionStore(database)
+    restarted, _, _ = gateway(runtime, connector=connector, store=second_store, key=key)
+    recovered = restarted.recover_pending()
+    assert recovered[0].state == ActionState.COMMITTED
+    assert connector.commit_calls == 1
+    assert len(connector.suppliers) == 1
+    second_store.close()
+
+
 def test_sqlite_persists_action_id_binding_across_restart(tmp_path):
     database = tmp_path / "gateway.sqlite3"
     runtime = policies(evaluation("allow", PolicyLayer.TASK, PolicyEffect.ALLOW))
