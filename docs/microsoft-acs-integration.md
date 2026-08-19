@@ -59,7 +59,7 @@ In a Python 3.11 environment:
 python3.11 -m venv .venv311
 . .venv311/bin/activate
 python -m pip install -e '.[acs]'
-python -m pytest
+python -m pytest -m acs_live tests/integration/test_microsoft_acs_live.py
 ```
 
-Passing the current tests establishes mapping compatibility, not end-to-end compatibility with the native ACS runtime. The next acceptance gate is a pinned live manifest exercising all five verdicts through `HostSession`, followed by comparison against CARM using identical policy evidence.
+The repository workflow `.github/workflows/acs-integration.yml` runs this gate independently on GitHub Actions. It pins ACS `0.3.1b1`, constructs its native Rust-backed runtime from a real custom-policy manifest, invokes it through `HostSession`, and exercises all five verdicts. Until that workflow passes, the integration remains pending rather than complete.
