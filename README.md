@@ -36,6 +36,8 @@ Milestone 2 is complete. It defines a strict framework-independent wire profile;
 
 Milestone 3 is in progress. The reference library now implements deterministic canonicalization, SHA-256 artifact digests, Ed25519 signing and verification, ordinary-delegation and delegation-proof validation, atomic in-memory budget allocation, replay/use tracking, audience checks, revocation-freshness evaluation, schema validation, signed revocation-record adaptation, scoped approval consumption, and amendment authorization. Receipt helpers, a signed active-status response profile, complete amendment-diff verification, and generated property-test coverage remain.
 
+The first Milestone 5 comparative slice is also executable. It implements a validated, digest-bound Governance Graph, explicit AND/OR/UNKNOWN joins, join-aware downstream reach, topology confidence, normalized policy-runtime inputs, deterministic CARM PE/NR/EB selection, and most-restrictive and fixed-priority baselines. In the supplier workflow, the same policy conflict escalates at the high-reach intake node and uses priority enforcement at the zero-reach commit node. This proves graph-sensitive behavior only—not decision correctness or competitive superiority.
+
 The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
 
 A 2026-08-19 competitive refresh identified Microsoft Agent Governance Toolkit as the closest implementation baseline and changed the build strategy: reuse existing policy, identity, approval, receipt, escalation, and adapter primitives where possible; build and test the distinct graph/evidence/recovery layer comparatively.
@@ -50,6 +52,7 @@ The current reference slice requires Python 3.9 or newer.
 python3 -m pip install -e .
 python3 -m pytest
 python3 tools/validate_schemas.py
+python3 tools/run_competitive_slice.py
 ```
 
 The example schema fixtures contain placeholder proof values. The cryptographic test suite creates fresh Ed25519 keys and internally consistent signed artifacts.
