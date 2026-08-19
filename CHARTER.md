@@ -16,7 +16,7 @@ Can a governed task cross heterogeneous agent runtimes while maintaining verifia
 
 ## Initial claims to test
 
-1. Current agent ecosystems do not define a complete, vendor-neutral governance-continuity protocol.
+1. No reviewed implementation yet combines cross-runtime task-governance continuity with graph-wide conflict consequences, certified selective automation, evidence-identifiability contracts, and governed commit recovery.
 2. A portable capsule can express a useful common governance subset without embedding entire enterprise policy systems.
 3. Deterministic middleware can enforce capsule invariants independently of model behavior.
 4. The same capsule semantics can operate across at least two independent agent runtimes and one tool protocol.
@@ -136,3 +136,5 @@ Continue toward a public protocol draft only if the prototype demonstrates:
 - Separate what is observed from what is claimed.
 - Publish limitations and failed experiments.
 - Require interoperable implementations before describing GCP as a standard.
+- Integrate strong existing governance primitives instead of recreating them.
+- Evaluate against current competitors and simple baselines, not only greenfield examples.
