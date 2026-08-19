@@ -1,5 +1,7 @@
 # Milestone 0 Landscape Report
 
+> **2026-08-19 update:** This report is a dated record of the 2026-08-11 framework review. A later primary-source refresh found substantial new overlap in Microsoft Agent Governance Toolkit, SentinelAgent, delegation/action receipt drafts, HEM, Policy Cards, and conformal agent controllers. The current competitive conclusion and build-versus-integrate decision are in [Competitive Architecture Report - 2026-08-19](competitive-architecture-report-2026-08-19.md). Do not quote the original gap statement without this update.
+
 ## Executive conclusion
 
 Primary-source review of OpenAI, Anthropic, Google ADK, A2A, MCP, Microsoft Agent Framework, AWS AgentCore/Bedrock, and LangGraph did not identify a complete vendor-neutral protocol for governance continuity across delegated AI work.
