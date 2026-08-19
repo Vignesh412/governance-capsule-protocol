@@ -140,6 +140,8 @@ Status: In progress (first in-memory product slice implemented 2026-08-19)
 
 The in-memory reference gateway now binds idempotency keys to proposals, orders kernel verification before policy and connector access, consumes normalized policy/CARM results, stops for approval, calls one protected supplier connector, signs product receipts, and reconciles a lost successful response without duplicating the supplier. Durable transactional storage, outbox delivery, full artifact wiring, and crash/restart recovery remain.
 
+The action ledger now also has a transactional SQLite profile. A second gateway instance can recover an ambiguous outcome after restart, reconcile it, and reject action-ID rebinding without repeating connector commit. Durable outbox intent, transition revisions, atomic approval/budget reservation, and PostgreSQL multi-instance semantics remain.
+
 ## M5 - CARM baseline and Governance Graph
 
 Status: In progress (started 2026-08-19)
