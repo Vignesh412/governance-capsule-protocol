@@ -37,6 +37,7 @@ The Python package under `src/gcp_reference` turns the v0.1 wire profile and for
 - a protected idempotent supplier connector for the first end-to-end demonstration; and
 - a transactional SQLite action ledger for restart-safe proposal binding, state, results, and signed receipts; and
 - durable commit-intent enumeration and recovery across pre-call and post-call process stops; and
+- a concrete signed root-capsule action verifier covering issuer role, audience, time, revocation, authority, constraints, obligations, and replay; and
 - deterministic protocol error codes.
 
 ## Deliberately not implemented yet
@@ -65,6 +66,7 @@ python3 tools/run_competitive_slice.py
 python3 tools/run_gateway_demo.py
 python3 tools/run_durable_gateway_demo.py
 python3 tools/run_outbox_recovery_demo.py
+python3 tools/run_signed_capsule_gateway_demo.py
 ```
 
 The competitive slice demonstrates that CARM decisions can change with verified downstream reach while topology-blind baselines do not. It is not evidence that the selected decisions are correct or safer. See `docs/competitive-slice-v0.1.md` for the scenario, result, and limitations.
