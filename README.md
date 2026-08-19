@@ -1,86 +1,176 @@
 # Governance Capsule
 
-Governance Capsule is an open research and engineering project exploring how governance can remain attached to work as that work moves between AI agents, tools, runtimes, and organizations.
+Governance Capsule is an executable research prototype for carrying governance with delegated AI-agent work.
 
-The intended destination is the **Governance Capsule Protocol (GCP)**: a vendor-neutral protocol for carrying verifiable authority, mandatory obligations, budgets, approvals, provenance, and enforcement evidence through delegated agent workflows.
+It explores a simple requirement: when one agent delegates a task to another, the task must not silently gain authority, lose mandatory obligations, exceed its allocated budgets, break its verifiable lineage, or continue under revoked authority.
 
-The project is deliberately not claiming to be a protocol or standard yet. It must first demonstrate interoperable behavior, precise lifecycle semantics, and enforceable security properties.
+The intended destination is the **Governance Capsule Protocol (GCP)**: a vendor-neutral protocol for portable, verifiable task governance across agents, tools, runtimes, and organizational boundaries. GCP is currently a **protocol candidate**, not a standard or production security system.
 
-## Working hypothesis
+## What is built
 
-Existing projects now provide substantial combinations of deterministic action governance, scope-narrowing delegation, approvals, budgets, revocation, receipts, human escalation, and framework adapters. The remaining product hypothesis is narrower: cross-runtime task-governance continuity combined with graph-wide conflict consequences, certified selective automation, evidence-identifiability contracts, and governed commit recovery.
+The repository contains a working Python reference implementation with the following capabilities.
 
-GCP is worth building if it can demonstrate that a governed task can cross independent agent runtimes without:
+### Portable governance artifacts
 
-- gaining unauthorized authority;
-- losing mandatory obligations;
-- exceeding conserved budgets;
-- breaking its verifiable delegation lineage; or
-- continuing after its authority has been revoked.
+- Governance Capsules describing task identity, provenance, authority, obligations, budgets, validity, audience, and revocation requirements.
+- Delegation proofs binding a parent capsule to a child capsule.
+- Approvals, amendments, revocations, enforcement receipts, and lifecycle receipts.
+- Strict JSON Schemas plus valid, structurally invalid, and semantically invalid examples.
+- Deterministic JSON canonicalization, SHA-256 digests, and Ed25519 signatures.
 
-## Project layers
+### Delegation verification
 
-1. **Governance Capsule Model** - the portable governance data model.
-2. **Governance Capsule Protocol** - the lifecycle and interchange rules.
-3. **Governed Action Gateway** - the trusted reference monitor controlling consequential side effects.
-4. **CARM** - the Cascade-Aware Resolution Mechanism for conflicts among otherwise valid policies.
-5. **CARM-SE and RIG-aware evidence handling** - certified selective automation plus evidence acquisition or abstention when the correct resolution is not identifiable.
+- Every capsule and delegation proof is schema-checked and signature-verified.
+- Capsule issuers, delegators, and signing keys are checked against assigned roles.
+- Delegated authority may narrow but cannot expand.
+- Mandatory obligations must survive delegation.
+- Child budgets must remain within the parent allocation.
+- Capsule lineage must be continuous and cryptographically bound.
+- Audience, validity windows, replay limits, and approval scope are enforced.
+- Revocation checks include ancestor capsules, so revoking an upstream authority stops its descendants.
 
-## Current status
+### Governed Action Gateway
 
-Milestone 0 is complete. The primary-source landscape review found that the gap survives in a narrower form: verifiable continuity and constrained transformation of task governance across heterogeneous systems.
+The reference gateway acts as a trusted decision and commit boundary before a protected supplier action. It:
 
-Milestone 1 is complete. It defines the minimal model, explicit revocation freshness guarantees, a threat analysis, and 24 executable properties for the first reference implementation.
+1. verifies the signed capsule or delegation chain;
+2. evaluates local policy and required approvals;
+3. applies the CARM conflict-resolution decision;
+4. rejects, escalates, constrains, or allows the proposed action;
+5. records the decision and controls in a signed receipt; and
+6. invokes the connector only after governance checks succeed.
 
-Milestone 2 is complete. It defines a strict framework-independent wire profile; schemas for capsules, delegation proofs, approvals, amendments, revocations, enforcement receipts, and lifecycle receipts; and valid, structurally invalid, and semantically invalid examples.
+Action identifiers are bound to exact proposal digests. Reusing an identifier for different input is rejected, while a legitimate retry can return the recorded result without duplicating the side effect.
 
-Milestone 3 is in progress. The reference library now implements deterministic canonicalization, SHA-256 artifact digests, Ed25519 signing and verification, ordinary-delegation and delegation-proof validation, atomic in-memory budget allocation, replay/use tracking, audience checks, revocation-freshness evaluation, schema validation, signed revocation-record adaptation, scoped approval consumption, and amendment authorization. Receipt helpers, a signed active-status response profile, complete amendment-diff verification, and generated property-test coverage remain.
+### Durable execution and recovery
 
-The first Milestone 5 comparative slice is also executable. It implements a validated, digest-bound Governance Graph, explicit AND/OR/UNKNOWN joins, join-aware downstream reach, topology confidence, normalized policy-runtime inputs, deterministic CARM PE/NR/EB selection, and most-restrictive and fixed-priority baselines. In the supplier workflow, the same policy conflict escalates at the high-reach intake node and uses priority enforcement at the zero-reach commit node. This proves graph-sensitive behavior only—not decision correctness or competitive superiority.
+- A SQLite action ledger persists proposals, decisions, controls, states, receipts, and connector results.
+- Commit intent is written before connector invocation.
+- Pending `COMMITTING` and `COMMIT_OUTCOME_UNKNOWN` actions can be recovered after restart.
+- Recovery reconciles by action ID before retrying the connector.
+- Fault-injection tests cover crashes immediately before and immediately after connector invocation.
+- In the demonstrated single-host profile, recovery completes the action without creating a duplicate supplier.
 
-A Microsoft ACS adapter now maps the five published ACS verdicts into normalized GCP policy evidence without losing warning, transform, escalation, or evidence semantics. It is source-contract tested; native ACS execution remains pending because the reviewed ACS Python SDK requires Python 3.11+ and the current workspace runs Python 3.9.6.
+This is a single-host durability result using an idempotent connector. It is not yet a distributed transaction guarantee.
 
-The first product-shaped Governed Action Gateway slice is now executable. It mediates one protected supplier connector, binds action IDs to proposal digests, preserves policy controls, stops rejected or approval-bound actions before connector access, signs decision receipts, and reconciles an ambiguous successful commit without issuing a duplicate supplier creation. Its state is process-local and it is not production-ready.
+### Governance Graph and CARM
 
-A restart-safe SQLite reference profile now persists the action ledger. The durable demonstration restarts the gateway after an ambiguous successful supplier commit, recovers the unknown state, reconciles it, and returns the recorded committed result on retry without another connector call. This is a single-host durability result, not yet the planned PostgreSQL/outbox production profile.
+- A validated Governance Graph represents dependencies among governed tasks.
+- `AND`, `OR`, and `UNKNOWN` joins model downstream execution structure.
+- Graph snapshots have deterministic digests.
+- Downstream reach and topology confidence contribute to conflict assessment.
+- CARM produces deterministic resolution outcomes from normalized policy evidence and graph context.
+- Escalation decisions cannot be relaxed by downstream conflict resolution.
 
-Durable commit-intent recovery now covers process stops immediately before and immediately after connector invocation. The restart worker reconstructs and verifies the persisted proposal, reconciles by action ID, commits only when the supplier system confirms no prior commit, and never duplicates the after-success case.
+The current implementation demonstrates graph-sensitive resolution behavior. It does not claim that graph reach alone proves the correctness of a policy decision.
 
-The gateway now also has a concrete signed-capsule kernel. A real root capsule is schema-checked, signature-verified, issuer-authorized, audience- and time-checked, revocation-checked, authority-matched, obligation-checked, and replay-limited before local policy or supplier access. Negative tests prove these failures short-circuit the downstream path.
+### Cross-framework transport
 
-The same gateway path now accepts a signed ordinary delegation chain. It verifies every capsule and attenuation transition, the delegation proof and delegator role, inherited obligations and budget containment, and cascading ancestor revocation before authorizing the leaf agent's supplier action.
+- An OpenAI Agents SDK handoff-shaped adapter exports application-owned governance into a signed transport envelope.
+- The envelope binds source, destination, exact proposal, complete delegation lineage, expiry, and a replay-protected nonce.
+- A Google ADK tool-callback-shaped boundary verifies the transport before composing it into the existing delegated-capsule verifier.
+- Cross-framework controls survive into the signed gateway receipt.
+- Tampering, replay, authority expansion, and cascading revocation stop before connector access.
 
-The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
+This is currently a deterministic SDK-contract proof. Native OpenAI Agents SDK and Google ADK execution is the next integration gate.
 
-A 2026-08-19 competitive refresh identified Microsoft Agent Governance Toolkit as the closest implementation baseline and changed the build strategy: reuse existing policy, identity, approval, receipt, escalation, and adapter primitives where possible; build and test the distinct graph/evidence/recovery layer comparatively.
+## Demonstrated scenarios
 
-See [CHARTER.md](CHARTER.md), [ROADMAP.md](ROADMAP.md), [docs/product-architecture-rfc-v0.1.md](docs/product-architecture-rfc-v0.1.md), [research/competitive-architecture-report-2026-08-19.md](research/competitive-architecture-report-2026-08-19.md), [research/milestone-0-landscape-report.md](research/milestone-0-landscape-report.md), [spec/formal-model-v0.1.md](spec/formal-model-v0.1.md), [spec/wire-profile-v0.1.md](spec/wire-profile-v0.1.md), [schema/README.md](schema/README.md), [docs/reference-library.md](docs/reference-library.md), and [journey/progress-log.md](journey/progress-log.md).
+| Scenario | Verified result |
+| --- | --- |
+| Valid signed delegation | The narrowed child action is committed once. |
+| Authority expansion | The child delegation is rejected before connector access. |
+| Removed mandatory obligation | The delegation is rejected. |
+| Budget overallocation | The delegation is rejected. |
+| Tampered delegation proof | Signature or content verification rejects the chain. |
+| Revoked root capsule | The descendant action is rejected through cascading revocation. |
+| Crash before connector call | Recovery reconstructs the proposal and commits once. |
+| Crash after connector success | Recovery discovers the prior commit and does not call the connector again. |
 
 ## Run locally
 
-The current reference slice requires Python 3.9 or newer.
+The core reference implementation requires Python 3.9 or newer.
 
 ```sh
 python3 -m pip install -e .
 python3 -m pytest
 python3 tools/validate_schemas.py
-python3 tools/run_competitive_slice.py
+```
+
+### Open the interactive demo
+
+On macOS, double-click **Open GCP Demo.command** in the repository folder.
+
+Alternatively, run:
+
+```sh
+python3 demo/server.py
+```
+
+The command opens [http://127.0.0.1:8765](http://127.0.0.1:8765). The guided visual demo leads with the OpenAI-to-Google-ADK transport, followed by valid delegation, authority expansion, obligation removal, budget overallocation, proof tampering, cascading root revocation, and crash recovery without duplicate execution.
+
+Run the product demonstrations:
+
+```sh
 python3 tools/run_gateway_demo.py
 python3 tools/run_durable_gateway_demo.py
 python3 tools/run_outbox_recovery_demo.py
 python3 tools/run_signed_capsule_gateway_demo.py
 python3 tools/run_delegated_gateway_demo.py
+python3 tools/run_cross_framework_demo.py
 ```
 
-The example schema fixtures contain placeholder proof values. The cryptographic test suite creates fresh Ed25519 keys and internally consistent signed artifacts.
+The delegated-action demonstration should finish with `lineage_verified: true`, state `COMMITTED`, and exactly one connector call. The recovery demonstration should show one committed supplier in both injected crash cases without a duplicate connector call.
 
-## Repository status
+## Verification status
 
-This is experimental research code. It has not completed a security review and must not be used as a production authorization or compliance system. See [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+Verified on 2026-08-19:
 
-## Evidence standard
+- **100 tests passed**.
+- **2 optional native integration tests were skipped**: the external-policy runtime and cross-framework SDK construction gates require their optional Python 3.11 dependencies.
+- **9 valid schema fixtures** were accepted.
+- **2 structurally invalid fixtures** were rejected.
+- **3 semantic-invalid manifests** were recognized: authority expansion, budget overallocation, and mandatory-obligation removal.
+- The signed delegated-action, cross-framework transport, durable recovery, and all eight interactive-demo scenarios completed successfully.
 
-Claims about vendor capabilities must be linked to current primary documentation or source code and dated. “Can be implemented with custom code” is not the same as native or protocol-defined support.
+## Trust boundary
+
+The gateway, trusted key registry, revocation source, approval source, action store, policy evaluator, and protected connector are trusted components in the current prototype. A Governance Capsule cannot make a compromised enforcement point trustworthy by itself.
+
+The implementation does not yet provide:
+
+- a completed independent security review;
+- Byzantine or compromised-host protection;
+- a multi-instance PostgreSQL ledger and leased asynchronous outbox;
+- instantaneous revocation across disconnected systems;
+- production key management or identity federation;
+- finalized interoperability profiles across independent agent frameworks; or
+- a ratified protocol or standard.
+
+Do not use this prototype as a production authorization or compliance system.
+
+## Project documentation
+
+- [Project charter](CHARTER.md)
+- [Roadmap](ROADMAP.md)
+- [Product architecture](docs/product-architecture-rfc-v0.1.md)
+- [Formal model](spec/formal-model-v0.1.md)
+- [Wire profile](spec/wire-profile-v0.1.md)
+- [Schema guide](schema/README.md)
+- [Reference library](docs/reference-library.md)
+- [Governed Action Gateway](docs/gateway-slice-v0.1.md)
+- [Durable gateway](docs/durable-gateway-slice-v0.1.md)
+- [Commit-intent recovery](docs/commit-intent-recovery-v0.1.md)
+- [Signed-capsule gateway](docs/signed-capsule-gateway-v0.1.md)
+- [Delegated gateway](docs/delegated-gateway-v0.1.md)
+- [Cross-framework proof](docs/cross-framework-proof-v0.1.md)
+- [Interactive demo](demo/)
+- [Security policy](SECURITY.md)
+- [Progress log](journey/progress-log.md)
+
+## Project status
+
+This repository is experimental research code. The schemas, APIs, receipt format, and lifecycle semantics may change as the protocol candidate is tested across additional runtimes and failure conditions.
 
 ## License
 
