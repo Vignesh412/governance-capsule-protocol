@@ -39,9 +39,15 @@ class SQLiteActionStore:
                 result_reference TEXT,
                 result_digest TEXT,
                 receipt_json TEXT
+                ,proposal_json TEXT
             )
             """
         )
+        columns = {
+            row[1] for row in self._connection.execute("PRAGMA table_info(governed_actions)")
+        }
+        if "proposal_json" not in columns:
+            self._connection.execute("ALTER TABLE governed_actions ADD COLUMN proposal_json TEXT")
         self._connection.commit()
 
     def close(self) -> None:
@@ -51,7 +57,13 @@ class SQLiteActionStore:
     def claim(self, record: ActionRecord) -> Optional[ActionRecord]:
         with self._lock, self._connection:
             cursor = self._connection.execute(
-                "INSERT OR IGNORE INTO governed_actions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                """
+                INSERT OR IGNORE INTO governed_actions (
+                    action_id, proposal_digest, state, attempt, decision, controls_json,
+                    reason_codes_json, graph_digest, policy_snapshot_digest,
+                    result_reference, result_digest, receipt_json, proposal_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
                 self._values(record),
             )
             if cursor.rowcount == 1:
@@ -69,7 +81,7 @@ class SQLiteActionStore:
                 UPDATE governed_actions SET
                     proposal_digest=?, state=?, attempt=?, decision=?, controls_json=?,
                     reason_codes_json=?, graph_digest=?, policy_snapshot_digest=?,
-                    result_reference=?, result_digest=?, receipt_json=?
+                    result_reference=?, result_digest=?, receipt_json=?, proposal_json=?
                 WHERE action_id=?
                 """,
                 self._values(record)[1:] + (record.action_id,),
@@ -85,6 +97,14 @@ class SQLiteActionStore:
             )
             if cursor.rowcount != 1:
                 raise GCPError(ErrorCode.ACTION_STATE_INVALID, "Action state changed before resume")
+
+    def pending_commits(self):
+        with self._lock:
+            rows = self._connection.execute(
+                "SELECT * FROM governed_actions WHERE state IN (?, ?) ORDER BY action_id",
+                (ActionState.COMMITTING.value, ActionState.COMMIT_OUTCOME_UNKNOWN.value),
+            ).fetchall()
+            return tuple(self._record(row) for row in rows)
 
     def _get_unlocked(self, action_id: str) -> Optional[ActionRecord]:
         row = self._connection.execute(
@@ -107,6 +127,7 @@ class SQLiteActionStore:
             record.result_reference,
             record.result_digest,
             json.dumps(record.receipt, separators=(",", ":"), sort_keys=True) if record.receipt else None,
+            json.dumps(record.proposal, separators=(",", ":"), sort_keys=True) if record.proposal else None,
         )
 
     @staticmethod
@@ -124,4 +145,5 @@ class SQLiteActionStore:
             result_reference=row[9],
             result_digest=row[10],
             receipt=json.loads(row[11]) if row[11] else None,
+            proposal=json.loads(row[12]) if len(row) > 12 and row[12] else None,
         )
