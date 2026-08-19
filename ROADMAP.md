@@ -146,6 +146,8 @@ The SQLite profile now persists a recoverable proposal with every `COMMITTING` i
 
 The gateway now invokes a concrete signed root-capsule verifier before policy or connector access. Schema, proof, issuer role, audience, time, revocation, action authority, registered constraints, mandatory obligations, and replay are enforced. Derived lineage composition, durable replay/approval/budget state, and signed active-status responses remain.
 
+Ordinary derived-capsule lineage is now composed into the gateway boundary. Every capsule, parent-child attenuation transition, delegation proof, issuer/delegator role, and cascading ancestor status is verified before the leaf action. Durable replay/approval/budget composition, signed active status, and cross-framework transport remain.
+
 ## M5 - CARM baseline and Governance Graph
 
 Status: In progress (started 2026-08-19)
