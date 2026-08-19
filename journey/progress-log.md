@@ -269,3 +269,32 @@ A signed revocation record proves revocation when one is present and effective. 
 - `src/gcp_reference/revocation.py`
 - `tests/test_protocol_controls.py`
 - `research/decisions/0007-scoped-control-verification.md`
+
+## 2026-08-19 - Unified product architecture checkpoint
+
+### Completed
+
+- Reframed Governance Capsule as one product rather than separate GCP and CARM efforts.
+- Defined GCP as the portable governance contract, the Governed Action Gateway as the trusted reference monitor, and CARM as the Cascade-Aware Resolution Mechanism for conflicts among otherwise valid policies.
+- Positioned CARM-SE behind an expiring certification envelope and made baseline CARM its mandatory fallback.
+- Turned the Resolution Identifiability Gap into an executable evidence-sufficiency, acquisition, and abstention contract.
+- Defined the trusted computing base and separated deterministic authorization from advisory model intelligence.
+- Defined governance data, control, and evidence planes.
+- Defined the versioned Governance Graph and topology-confidence requirements.
+- Defined the governed action state machine, atomic reservations, idempotency, outbox, ambiguous connector outcomes, reconciliation, and compensation states.
+- Selected a centralized PostgreSQL-backed deployment profile before cross-organization federation.
+- Specified the supplier-onboarding flagship demonstration and revised the roadmap around one end-to-end product.
+- Recorded Decision 0008.
+
+### Key design result
+
+A travelling capsule is not self-enforcing. It carries signed governance claims. The defensible product guarantee comes from complete mediation at a trusted action boundary: agents propose, the deterministic kernel verifies, CARM resolves valid-policy conflicts, CARM-SE automates only within certification, RIG requests evidence or abstains, and the gateway alone commits the protected side effect.
+
+### Next work
+
+Finish Milestone 3 with amendment-diff verification, signed active-status responses, signed receipt helpers, and randomized property coverage. Then begin the transactional Governed Action Gateway defined by the architecture RFC.
+
+### New evidence
+
+- `docs/product-architecture-rfc-v0.1.md`
+- `research/decisions/0008-unified-product-architecture.md`
