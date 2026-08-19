@@ -40,6 +40,8 @@ The first Milestone 5 comparative slice is also executable. It implements a vali
 
 A Microsoft ACS adapter now maps the five published ACS verdicts into normalized GCP policy evidence without losing warning, transform, escalation, or evidence semantics. It is source-contract tested; native ACS execution remains pending because the reviewed ACS Python SDK requires Python 3.11+ and the current workspace runs Python 3.9.6.
 
+The first product-shaped Governed Action Gateway slice is now executable. It mediates one protected supplier connector, binds action IDs to proposal digests, preserves policy controls, stops rejected or approval-bound actions before connector access, signs decision receipts, and reconciles an ambiguous successful commit without issuing a duplicate supplier creation. Its state is process-local and it is not production-ready.
+
 The unified product architecture now defines the trust boundary, data/control/evidence planes, action state machine, Governance Graph, CARM/CARM-SE/RIG interaction, persistence model, and first product demonstration.
 
 A 2026-08-19 competitive refresh identified Microsoft Agent Governance Toolkit as the closest implementation baseline and changed the build strategy: reuse existing policy, identity, approval, receipt, escalation, and adapter primitives where possible; build and test the distinct graph/evidence/recovery layer comparatively.
@@ -55,6 +57,7 @@ python3 -m pip install -e .
 python3 -m pytest
 python3 tools/validate_schemas.py
 python3 tools/run_competitive_slice.py
+python3 tools/run_gateway_demo.py
 ```
 
 The example schema fixtures contain placeholder proof values. The cryptographic test suite creates fresh Ed25519 keys and internally consistent signed artifacts.
