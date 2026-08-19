@@ -4,6 +4,8 @@ Status: Accepted working architecture
 Date: 2026-08-19  
 Audience: protocol authors, runtime implementers, adapter authors, security reviewers, and product engineers
 
+Competitive dependency: the build-versus-integrate decisions in `research/competitive-architecture-report-2026-08-19.md` constrain implementation of this architecture. Existing identity, policy, approval, escalation, receipt, and framework-adapter systems should be reused or profiled where they satisfy the required semantics.
+
 ## 1. Executive summary
 
 Governance Capsule is one product with four cooperating mechanisms:
@@ -547,6 +549,7 @@ The demo must include one malicious or faulty child, one ambiguous connector fai
 
 ### Phase B: governed action gateway
 
+- define a policy-runtime adapter and exercise Microsoft AGT ACS or OPA/Cedar as the first external evaluator;
 - implement the action state machine and PostgreSQL persistence;
 - implement reservation, idempotency, outbox, and reconciliation;
 - expose evaluate/commit/delegate/approve/revoke/evidence APIs;
@@ -567,7 +570,7 @@ The demo must include one malicious or faulty child, one ambiguous connector fai
 
 ### Phase E: adapters and demonstration
 
-- integrate one agent framework and MCP;
+- integrate one agent framework, one existing governance runtime, and MCP;
 - build the supplier-onboarding workflow and audit timeline;
 - add a second framework and A2A binding;
 - publish reproducible traces, latency, failures, and limitations.
