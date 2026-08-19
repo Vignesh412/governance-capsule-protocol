@@ -56,4 +56,4 @@ This is the first product-shaped behavior in the repository: an action crosses g
 
 ## Next acceptance gate
 
-Move the action ledger, commit intent, approval use, and receipts to durable transactional storage. Then crash the gateway after connector success but before result persistence, restart it, reconcile the action, and prove that only one supplier exists.
+The action ledger and receipts now have a restart-safe SQLite profile, documented in `docs/durable-gateway-slice-v0.1.md`. The next acceptance gate is a durable commit-intent/outbox transaction covering process termination at every transition boundary, followed by the planned PostgreSQL profile.
