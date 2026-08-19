@@ -8,7 +8,14 @@ from .approval import (
     validate_amendment,
     validate_approval,
 )
-from .adapters import ACSInterventionRuntime
+from .adapters import (
+    ACSInterventionRuntime,
+    GoogleADKGovernanceBoundary,
+    OpenAIGovernanceHandoffAdapter,
+    OpenAIHandoffState,
+    build_google_adk_before_tool_callback,
+    build_openai_on_handoff,
+)
 from .carm import (
     CARMConfig,
     PolicyConflict,
@@ -58,6 +65,13 @@ from .policy import (
     PolicyRuntime,
 )
 from .semantics import validate_audience, validate_delegation, validate_delegation_proof
+from .transport import (
+    FrameworkIdentity,
+    VerifiedTransport,
+    assert_proposal_matches_transport,
+    build_transport_envelope,
+    verify_transport_envelope,
+)
 
 __all__ = [
     "AllocationLedger",
@@ -76,6 +90,7 @@ __all__ = [
     "ErrorCode",
     "GCPError",
     "GovernanceGraph",
+    "GoogleADKGovernanceBoundary",
     "GovernedActionGateway",
     "GraphEdge",
     "GraphNode",
@@ -84,6 +99,10 @@ __all__ = [
     "InMemoryActionStore",
     "SimulatedProcessCrash",
     "KeyResolver",
+    "FrameworkIdentity",
+    "VerifiedTransport",
+    "OpenAIGovernanceHandoffAdapter",
+    "OpenAIHandoffState",
     "PolicyConflict",
     "PolicyEffect",
     "PolicyEvaluation",
@@ -101,6 +120,10 @@ __all__ = [
     "SQLiteActionStore",
     "UseRegistry",
     "artifact_digest",
+    "assert_proposal_matches_transport",
+    "build_google_adk_before_tool_callback",
+    "build_openai_on_handoff",
+    "build_transport_envelope",
     "amendment_change_digest",
     "sign_artifact",
     "status_from_signed_revocation",
@@ -110,6 +133,7 @@ __all__ = [
     "validate_delegation",
     "validate_delegation_proof",
     "verify_artifact",
+    "verify_transport_envelope",
     "validate_structure",
     "detect_conflicts",
     "fixed_priority",
